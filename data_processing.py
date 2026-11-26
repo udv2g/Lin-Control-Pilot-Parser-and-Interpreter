@@ -119,29 +119,36 @@ def format_Num_Prop_Pages(byte_val, device_type):
 
 
 def format_selected_version(byte_val):
+    """xxSelectedVersion: any value 0-254 may be selected; FF is Not Available
+    (base document 8.3.15, 8.3.29).  254 used to be shown as an error."""
     if byte_val == 255:
         return '<span style="color:#cfcfcf;">N/A</span>'
-    elif byte_val == 254:
-        return '<span style="color:red;">error</span>'
     else:
         return str(byte_val)
 
 
 def format_amp_value(byte_val):
+    """Base-frame currents (base document 8.3.6, 8.3.9, 8.3.12, 8.3.13, 8.3.21,
+    8.3.26): 0-250 A at 1 A per bit, 251-254 Reserved, FF Not Available.  There
+    is no Error value; 254 used to be shown as an error and 251-253 as amps."""
     if byte_val == 255:
         return '<span style="color:#cfcfcf;">N/A</span>'
-    elif byte_val == 254:
-        return '<span style="color:red;">error</span>'
+    elif byte_val > 250:
+        return f'<span style="color:#cfcfcf;">Reserved ({byte_val})</span>'
     else:
         return f"{byte_val}A"
 
 
 def format_voltage_value(voltage_float):
-    # Check if voltage_float indicates N/A or error
-    if abs(voltage_float - 255.0) < 1e-9 or abs(voltage_float - 6553.5) < 1e-9:
+    """Base-frame voltages, passed in volts (raw / 10).  Base document 8.3.7,
+    8.3.8, 8.3.10, 8.3.11, 8.3.27, 8.3.28: 0-10000 at 0.1 V per bit (0-1000.0 V)
+    and FFFF Not Available.  254.0 V and 255.0 V are ordinary values; they used
+    to be shown as "error" and "N/A"."""
+    raw = int(round(voltage_float * 10))
+    if raw == 0xFFFF:
         return '<span style="color:#cfcfcf;">N/A</span>'
-    elif abs(voltage_float - 254.0) < 1e-9:
-        return '<span style="color:red;">error</span>'
+    elif raw > 10000:
+        return f'<span style="color:#cfcfcf;">Reserved (0x{raw:04X})</span>'
     else:
         return f"{voltage_float:.1f}V"
 

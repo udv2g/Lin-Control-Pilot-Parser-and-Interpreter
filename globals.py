@@ -1,3 +1,4 @@
+# Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 # globals.py
 
 from PyQt5.QtCore import QTimer
@@ -68,9 +69,11 @@ color_map = {
 }
 
 protocol_version_names = {
+    0: "PWM-CP",
     1: "IEC 61851-1",
     2: "SAE J3068",
     3: "SAE J3068/1",
+    103: "SAE J3068/1 + proprietary data",  # J3068/1 Appendix A
     252: "SAE J3068/2",
     253: "UD Advanced",
     255: "N/A"

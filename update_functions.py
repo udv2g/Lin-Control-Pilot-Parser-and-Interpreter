@@ -1,3 +1,4 @@
+# Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 import re
 from data_processing import format_frame
 import globals
@@ -351,18 +352,20 @@ def update_sesupported_protocol_versions_display(selected_frame, ver_data_timeli
         except (ValueError, TypeError):
             return "<span style='color:#cfcfcf;'>N/A</span>"
 
+        # Base document 8.3.19 / 8.3.33: 0-2 defined, 3-239 reserved, 240-253
+        # proprietary/experimental, 254 reserved, FF Not Available.  The parts
+        # of the series define 3 and 103 (J3068/1) and 252 (J3068/2), so those
+        # are named rather than called reserved or experimental.
         if val == 255:
             return "<span style='color:#cfcfcf;'>N/A</span>"
-        elif val == 254:
-            return "<span style='color:red;'>Reserved</span>"
-        elif val in [0, 1, 2]:
-            return f"<span style='color:black;'>{val}</span>"
-        elif 3 <= val <= 239:
-            return "<span style='color:black;'>Reserved</span>"
+        name = protocol_version_names.get(val)
+        if name:
+            label = name
         elif 240 <= val <= 253:
-            return "<span style='color:black;'>Experimental</span>"
+            label = "Experimental"
         else:
-            return f"<span style='color:black;'>Unknown ({val})</span>"
+            label = "Reserved"
+        return f"<span style='color:black;'>{val} ({label})</span>"
 
     # Find the most recent data for SE and EV respectively
     chosen_data_se = next((d for f, d in reversed(ver_data_timeline) if f <= selected_frame and "SeVersionPageNumber" in d), None)

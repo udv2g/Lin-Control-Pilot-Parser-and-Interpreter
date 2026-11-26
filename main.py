@@ -1080,7 +1080,9 @@ def process_stage(page_buffer, field_name, string_position, data_bytes, field_to
 def display_frames(chunks):
     global frames_parsed, total_frames, last_valid_frame, recent_frame_types
     statuses = ["StatusVer", "StatusInit", "StatusOp"]
-    statusvals = ["Incomplete", "Complete", "Error", "N/A", "Deny_V", "Permit_V", "Error"]
+    # Ver/Init: 0 Incomplete, 1 Complete, 2 Error, 3 Not Available (indices 0-3);
+    # Op: 0 Deny_V, 1 Permit_V, 2 Error, 3 Not Available (indices 4-7). Base 8.3.17 / 8.3.31.
+    statusvals = ["Incomplete", "Complete", "Error", "N/A", "Deny_V", "Permit_V", "Error", "N/A"]
     lines = ["L1", "L2", "L3", "N"]
     frequencies = ["None Supported", "50 Hz", "60 Hz", "50 Hz or 60 Hz"]
 
