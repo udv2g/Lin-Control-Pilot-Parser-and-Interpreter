@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 
 
 a = Analysis(
@@ -22,7 +23,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='main',
+    name='LIN-CP-Parser',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

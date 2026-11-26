@@ -17,7 +17,7 @@ This is a hardware and software implementation of the communications is in the (
 
 - Added Support for SAE J3068, SAE J3068/1, and SAE J3068/2 [**NOTE** SAE J3068/2 may have bugs please report any that do not adhere to the standard this is currently under development] 
 - CRC32 check for multiplexed frames implemented into debug log.
-- Added support for Python Code Gen from [here](https://github.com/udv2g/saej3068-emulator). Directions on how to change the parameters for what multiplexed frames are included and how to generate the code look at the link in the previous sentence. 
+- Added support for Python Code Gen from [here](https://github.com/udv2g/saej3068-emulator/tree/slash2/code%20gen) (the `code gen` folder of the `slash2` branch of saej3068-emulator; see "PYTHON Usage" in that branch's README). Directions on how to change the parameters for what multiplexed frames are included and how to generate the code look at the link in the previous sentence. 
 
 ## Future Updates
 
@@ -30,7 +30,7 @@ This is a hardware and software implementation of the communications is in the (
 The GUI has a multifunctional design to carry out a variety of tasks including parsing various LIN communication configurations from saved files, as well as live binary directly from CP line. The overall goal is to be able to interpret different communications and decisions being made between the EVSE during their synchronization.
 
 ### Prerequisites
-There is 2 options for running this program.  <br><br>**1. [Only use if you have a Windows devices]** navigate to where you downloaded the program. Then follow this path dist\main\ in this location you should see 2 things a file that is _internal and another main.exe, double-click on main.exe. The program should now be working. This method doesn't require you to have any pre-downloaded items such as Python or specific libraries. <br>
+There is 2 options for running this program.  <br><br>**1. [Only use if you have a Windows devices]** navigate to where you downloaded the program and double-click `dist\LIN-CP-Parser.exe`, a single executable for 64-bit (x64) Windows built from this source with PyInstaller (`main.spec`). This method doesn't require you to have any pre-downloaded items such as Python or specific libraries. <br>
 <br>**2. [Non-Windows devices/Windows Development]** Before running the application, ensure you have the following installed on your system:
 
 - **Python 3.10 or later**  
