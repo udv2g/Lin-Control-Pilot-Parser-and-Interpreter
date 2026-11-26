@@ -1391,10 +1391,10 @@ def update_ev_data_tab(selected_frame, init_data, op_data, ver_data, display_wid
     ev_keys = [
         # Keys from op_data (Live Operation & EvID Data Stage)
         "EvOdometer", "EvStatusInletLatch", "EvStatusInletOverride", "EvStatusInletLock",
-        "EvNumberJ2012Dtcs", "EvJ2012DtcStatus", "EvJ2012DtcCount", "EvHVESSDishargeCapacity",
+        "EvNumberJ2012Dtcs", "EvJ2012DtcStatus", "EvJ2012DtcCount", "EvHVESSDschCapacity",
         "EvHVESSChargeCapacity", "EvEnergyForDeparture", "EvTimeToDeparture",
-        "EvHVESSRange", "EvFuelRange", "EvEVTimeToEnergyForDept", "EvDurMin", "EvChaDurMax",
-        "EvDschDurMax", "EvTimeReqNum", "EvEVTimeToRange", "EvEVTimeToEnergy",
+        "EvHVESSRange", "EvFuelRange", "EvTimeToEnergyForDept", "EvDurMin", "EvChaDurMax",
+        "EvDschDurMax", "EvTimeReqNum", "EvTimeToRange", "EvTimeToEnergy",
         "EvHVESSVoltage", "EvHVESSCurrent", "EvHVESSHealth", "EvHVESSUserSOC",
         "EvACActivePower", "EvACReactivePower", "EvACFrequency",
         "EvL1NVolts", "EvL2NVolts", "EvL3NVolts",

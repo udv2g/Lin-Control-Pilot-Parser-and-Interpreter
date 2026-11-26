@@ -28,7 +28,7 @@ Next Fixes
 from data_processing import format_frame, format_selected_version, format_amp_value, format_voltage_value, \
     compute_lin_enhanced_checksum, guess_format, parse_hex_data, parse_data_stream, determine_protocol_version, \
     format_id_status, format_crc_status, format_Num_Prop_Pages, format_j3072_status, format_j3072_crc_status, \
-    crc_check
+    crc_check, format_j3072_time
 
 from update_functions import (update_slider_label, update_task_display, update_contactor_state_display, \
     update_protocol_version_display, update_sesupported_protocol_versions_display, update_ratings_display, \
@@ -1808,7 +1808,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvPropDataIdent Page: 39")
                     if EvPropDataIdent >= 0xFF:
                         update_op_data("EvPropDataIdent", f"N/A")
-                    elif EvPropDataIdent >= 0xFF:
+                    elif EvPropDataIdent >= 0xFE:
                         update_op_data("EvPropDataIdent", f"Error")
                     elif EvPropDataIdent >= 0xFB:
                         update_op_data("EvPropDataIdent", f"Reserved 0x{EvPropDataIdent:02X}")
@@ -1819,7 +1819,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvPropDataRev Page: 39")
                     if EvPropDataRev >= 0xFF:
                         update_op_data("EvPropDataRev", f"N/A")
-                    elif EvPropDataRev >= 0xFF:
+                    elif EvPropDataRev >= 0xFE:
                         update_op_data("EvPropDataRev", f"Error")
                     elif EvPropDataRev >= 0xFB:
                         update_op_data("EvPropDataRev", f"Reserved 0x{EvPropDataRev:02X}")
@@ -1839,7 +1839,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvOdometer Page: 97")
                     if EvOdometer >= 0xFF000000:
                         update_op_data("EvOdometer", f"N/A")
-                    elif EvOdometer >= 0xFF000000:
+                    elif EvOdometer >= 0xFE000000:
                         update_op_data("EvOdometer", f"Error")
                     elif EvOdometer >= 0xFB000000:
                         update_op_data("EvOdometer", f"Reserved 0x{EvOdometer:02X}")
@@ -1900,8 +1900,10 @@ def display_frames(chunks):
                     result_display.append(f"    EvNumberJ2012Dtcs Page: 98")
                     if EvNumberJ2012Dtcs >= 0xFF:
                         update_op_data("EvNumberJ2012Dtcs", f"N/A")
-                    elif EvNumberJ2012Dtcs >= 0xFF:
+                    elif EvNumberJ2012Dtcs >= 0xFE:
                         update_op_data("EvNumberJ2012Dtcs", f"Error")
+                    elif EvNumberJ2012Dtcs == 0xFB:
+                        update_op_data("EvNumberJ2012Dtcs", f"Subsequent DTC")
                     elif EvNumberJ2012Dtcs >= 0xFB:
                         update_op_data("EvNumberJ2012Dtcs", f"Reserved 0x{EvNumberJ2012Dtcs:02X}")
                     else:
@@ -1922,28 +1924,28 @@ def display_frames(chunks):
                     result_display.append(f"    EvJ2012DtcCount Page: 98")
                     if EvJ2012DtcCount >= 0x7F:
                         update_op_data("EvJ2012DtcCount", f"N/A")
-                    elif EvJ2012DtcCount >= 0x7F:
-                        update_op_data("EvJ2012DtcCount", f"Error")
+                    elif EvJ2012DtcCount == 0x7E:
+                        update_op_data("EvJ2012DtcCount", f"More than 125 count")
                     else:
                         update_op_data("EvJ2012DtcCount", f"{(EvJ2012DtcCount)} count")
 
                 elif page == 99:
-                    EvHVESSDishargeCapacity = (databytes[3] << 16) | (databytes[2] << 8) | (databytes[1])
-                    result_display.append(f"    EvHVESSDishargeCapacity Page: 99")
-                    if EvHVESSDishargeCapacity >= 0xFF0000:
-                        update_op_data("EvHVESSDishargeCapacity", f"N/A")
-                    elif EvHVESSDishargeCapacity >= 0xFF0000:
-                        update_op_data("EvHVESSDishargeCapacity", f"Error")
-                    elif EvHVESSDishargeCapacity >= 0xFB0000:
-                        update_op_data("EvHVESSDishargeCapacity", f"Reserved 0x{EvHVESSDishargeCapacity:02X}")
+                    EvHVESSDschCapacity = (databytes[3] << 16) | (databytes[2] << 8) | (databytes[1])
+                    result_display.append(f"    EvHVESSDschCapacity Page: 99")
+                    if EvHVESSDschCapacity >= 0xFF0000:
+                        update_op_data("EvHVESSDschCapacity", f"N/A")
+                    elif EvHVESSDschCapacity >= 0xFE0000:
+                        update_op_data("EvHVESSDschCapacity", f"Error")
+                    elif EvHVESSDschCapacity >= 0xFB0000:
+                        update_op_data("EvHVESSDschCapacity", f"Reserved 0x{EvHVESSDschCapacity:02X}")
                     else:
-                        update_op_data("EvHVESSDishargeCapacity", f"{(EvHVESSDishargeCapacity * 0.001000):.3f} kWh")
+                        update_op_data("EvHVESSDschCapacity", f"{(EvHVESSDschCapacity * 0.001000):.3f} kWh")
 
                     EvHVESSChargeCapacity = (databytes[6] << 16) | (databytes[5] << 8) | (databytes[4])
                     result_display.append(f"    EvHVESSChargeCapacity Page: 99")
                     if EvHVESSChargeCapacity >= 0xFF0000:
                         update_op_data("EvHVESSChargeCapacity", f"N/A")
-                    elif EvHVESSChargeCapacity >= 0xFF0000:
+                    elif EvHVESSChargeCapacity >= 0xFE0000:
                         update_op_data("EvHVESSChargeCapacity", f"Error")
                     elif EvHVESSChargeCapacity >= 0xFB0000:
                         update_op_data("EvHVESSChargeCapacity", f"Reserved 0x{EvHVESSChargeCapacity:02X}")
@@ -1955,7 +1957,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvEnergyForDeparture Page: 100")
                     if EvEnergyForDeparture >= 0xFF0000:
                         update_op_data("EvEnergyForDeparture", f"N/A")
-                    elif EvEnergyForDeparture >= 0xFF0000:
+                    elif EvEnergyForDeparture >= 0xFE0000:
                         update_op_data("EvEnergyForDeparture", f"Error")
                     elif EvEnergyForDeparture >= 0xFB0000:
                         update_op_data("EvEnergyForDeparture", f"Reserved 0x{EvEnergyForDeparture:02X}")
@@ -1966,7 +1968,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvTimeToDeparture Page: 100")
                     if EvTimeToDeparture >= 0xFF00:
                         update_op_data("EvTimeToDeparture", f"N/A")
-                    elif EvTimeToDeparture >= 0xFF00:
+                    elif EvTimeToDeparture >= 0xFE00:
                         update_op_data("EvTimeToDeparture", f"Error")
                     elif EvTimeToDeparture >= 0xFB00:
                         update_op_data("EvTimeToDeparture", f"Reserved 0x{EvTimeToDeparture:02X}")
@@ -1978,7 +1980,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSRange Page: 101")
                     if EvHVESSRange >= 0xFF00:
                         update_op_data("EvHVESSRange", f"N/A")
-                    elif EvHVESSRange >= 0xFF00:
+                    elif EvHVESSRange >= 0xFE00:
                         update_op_data("EvHVESSRange", f"Error")
                     elif EvHVESSRange >= 0xFB00:
                         update_op_data("EvHVESSRange", f"Reserved 0x{EvHVESSRange:02X}")
@@ -1989,30 +1991,30 @@ def display_frames(chunks):
                     result_display.append(f"    EvFuelRange Page: 101")
                     if EvFuelRange >= 0xFF00:
                         update_op_data("EvFuelRange", f"N/A")
-                    elif EvFuelRange >= 0xFF00:
+                    elif EvFuelRange >= 0xFE00:
                         update_op_data("EvFuelRange", f"Error")
                     elif EvFuelRange >= 0xFB00:
                         update_op_data("EvFuelRange", f"Reserved 0x{EvFuelRange:02X}")
                     else:
                         update_op_data("EvFuelRange", f"{(EvFuelRange)} km")
 
-                    EvEVTimeToEnergyForDept = (databytes[6] << 8) | (databytes[5])
-                    result_display.append(f"    EvEVTimeToEnergyForDept Page: 101")
-                    if EvEVTimeToEnergyForDept >= 0xFF00:
-                        update_op_data("EvEVTimeToEnergyForDept", f"N/A")
-                    elif EvEVTimeToEnergyForDept >= 0xFF00:
-                        update_op_data("EvEVTimeToEnergyForDept", f"Error")
-                    elif EvEVTimeToEnergyForDept >= 0xFB00:
-                        update_op_data("EvEVTimeToEnergyForDept", f"Reserved 0x{EvEVTimeToEnergyForDept:02X}")
+                    EvTimeToEnergyForDept = (databytes[6] << 8) | (databytes[5])
+                    result_display.append(f"    EvTimeToEnergyForDept Page: 101")
+                    if EvTimeToEnergyForDept >= 0xFF00:
+                        update_op_data("EvTimeToEnergyForDept", f"N/A")
+                    elif EvTimeToEnergyForDept >= 0xFE00:
+                        update_op_data("EvTimeToEnergyForDept", f"Error")
+                    elif EvTimeToEnergyForDept >= 0xFB00:
+                        update_op_data("EvTimeToEnergyForDept", f"Reserved 0x{EvTimeToEnergyForDept:02X}")
                     else:
-                        update_op_data("EvEVTimeToEnergyForDept", f"{(EvEVTimeToEnergyForDept)} min")
+                        update_op_data("EvTimeToEnergyForDept", f"{(EvTimeToEnergyForDept)} min")
 
                 elif page == 102:
                     EvDurMin = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvDurMin Page: 102")
                     if EvDurMin >= 0xFF00:
                         update_op_data("EvDurMin", f"N/A")
-                    elif EvDurMin >= 0xFF00:
+                    elif EvDurMin >= 0xFE00:
                         update_op_data("EvDurMin", f"Error")
                     elif EvDurMin >= 0xFB00:
                         update_op_data("EvDurMin", f"Reserved 0x{EvDurMin:02X}")
@@ -2023,7 +2025,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvChaDurMax Page: 102")
                     if EvChaDurMax >= 0xFF00:
                         update_op_data("EvChaDurMax", f"N/A")
-                    elif EvChaDurMax >= 0xFF00:
+                    elif EvChaDurMax >= 0xFE00:
                         update_op_data("EvChaDurMax", f"Error")
                     elif EvChaDurMax >= 0xFB00:
                         update_op_data("EvChaDurMax", f"Reserved 0x{EvChaDurMax:02X}")
@@ -2034,7 +2036,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvDschDurMax Page: 102")
                     if EvDschDurMax >= 0xFF00:
                         update_op_data("EvDschDurMax", f"N/A")
-                    elif EvDschDurMax >= 0xFF00:
+                    elif EvDschDurMax >= 0xFE00:
                         update_op_data("EvDschDurMax", f"Error")
                     elif EvDschDurMax >= 0xFB00:
                         update_op_data("EvDschDurMax", f"Reserved 0x{EvDschDurMax:02X}")
@@ -2046,41 +2048,41 @@ def display_frames(chunks):
                     result_display.append(f"    EvTimeReqNum Page: 103")
                     if EvTimeReqNum >= 0xFF:
                         update_op_data("EvTimeReqNum", f"N/A")
-                    elif EvTimeReqNum >= 0xFF:
+                    elif EvTimeReqNum >= 0xFE:
                         update_op_data("EvTimeReqNum", f"Error")
                     elif EvTimeReqNum >= 0xFB:
                         update_op_data("EvTimeReqNum", f"Reserved 0x{EvTimeReqNum:02X}")
                     else:
                         update_op_data("EvTimeReqNum", f"0x{(EvTimeReqNum):02X} ")
 
-                    EvEVTimeToRange = (databytes[3] << 8) | (databytes[2])
-                    result_display.append(f"    EvEVTimeToRange Page: 103")
-                    if EvEVTimeToRange >= 0xFF00:
-                        update_op_data("EvEVTimeToRange", f"N/A")
-                    elif EvEVTimeToRange >= 0xFF00:
-                        update_op_data("EvEVTimeToRange", f"Error")
-                    elif EvEVTimeToRange >= 0xFB00:
-                        update_op_data("EvEVTimeToRange", f"Reserved 0x{EvEVTimeToRange:02X}")
+                    EvTimeToRange = (databytes[3] << 8) | (databytes[2])
+                    result_display.append(f"    EvTimeToRange Page: 103")
+                    if EvTimeToRange >= 0xFF00:
+                        update_op_data("EvTimeToRange", f"N/A")
+                    elif EvTimeToRange >= 0xFE00:
+                        update_op_data("EvTimeToRange", f"Error")
+                    elif EvTimeToRange >= 0xFB00:
+                        update_op_data("EvTimeToRange", f"Reserved 0x{EvTimeToRange:02X}")
                     else:
-                        update_op_data("EvEVTimeToRange", f"{(EvEVTimeToRange)} min")
+                        update_op_data("EvTimeToRange", f"{(EvTimeToRange)} min")
 
-                    EvEVTimeToEnergy = (databytes[5] << 8) | (databytes[4])
-                    result_display.append(f"    EvEVTimeToEnergy Page: 103")
-                    if EvEVTimeToEnergy >= 0xFF00:
-                        update_op_data("EvEVTimeToEnergy", f"N/A")
-                    elif EvEVTimeToEnergy >= 0xFF00:
-                        update_op_data("EvEVTimeToEnergy", f"Error")
-                    elif EvEVTimeToEnergy >= 0xFB00:
-                        update_op_data("EvEVTimeToEnergy", f"Reserved 0x{EvEVTimeToEnergy:02X}")
+                    EvTimeToEnergy = (databytes[5] << 8) | (databytes[4])
+                    result_display.append(f"    EvTimeToEnergy Page: 103")
+                    if EvTimeToEnergy >= 0xFF00:
+                        update_op_data("EvTimeToEnergy", f"N/A")
+                    elif EvTimeToEnergy >= 0xFE00:
+                        update_op_data("EvTimeToEnergy", f"Error")
+                    elif EvTimeToEnergy >= 0xFB00:
+                        update_op_data("EvTimeToEnergy", f"Reserved 0x{EvTimeToEnergy:02X}")
                     else:
-                        update_op_data("EvEVTimeToEnergy", f"{(EvEVTimeToEnergy)} min")
+                        update_op_data("EvTimeToEnergy", f"{(EvTimeToEnergy)} min")
 
                 elif page == 104:
                     EvHVESSVoltage = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvHVESSVoltage Page: 104")
                     if EvHVESSVoltage >= 0xFF00:
                         update_op_data("EvHVESSVoltage", f"N/A")
-                    elif EvHVESSVoltage >= 0xFF00:
+                    elif EvHVESSVoltage >= 0xFE00:
                         update_op_data("EvHVESSVoltage", f"Error")
                     elif EvHVESSVoltage >= 0xFB00:
                         update_op_data("EvHVESSVoltage", f"Reserved 0x{EvHVESSVoltage:02X}")
@@ -2091,7 +2093,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSCurrent Page: 104")
                     if EvHVESSCurrent >= 0xFF00:
                         update_op_data("EvHVESSCurrent", f"N/A")
-                    elif EvHVESSCurrent >= 0xFF00:
+                    elif EvHVESSCurrent >= 0xFE00:
                         update_op_data("EvHVESSCurrent", f"Error")
                     elif EvHVESSCurrent >= 0xFB00:
                         update_op_data("EvHVESSCurrent", f"Reserved 0x{EvHVESSCurrent:02X}")
@@ -2102,7 +2104,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSHealth Page: 104")
                     if EvHVESSHealth >= 0xFF:
                         update_op_data("EvHVESSHealth", f"N/A")
-                    elif EvHVESSHealth >= 0xFF:
+                    elif EvHVESSHealth >= 0xFE:
                         update_op_data("EvHVESSHealth", f"Error")
                     elif EvHVESSHealth >= 0xFB:
                         update_op_data("EvHVESSHealth", f"Reserved 0x{EvHVESSHealth:02X}")
@@ -2113,7 +2115,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSUserSOC Page: 104")
                     if EvHVESSUserSOC >= 0xFF:
                         update_op_data("EvHVESSUserSOC", f"N/A")
-                    elif EvHVESSUserSOC >= 0xFF:
+                    elif EvHVESSUserSOC >= 0xFE:
                         update_op_data("EvHVESSUserSOC", f"Error")
                     elif EvHVESSUserSOC >= 0xFB:
                         update_op_data("EvHVESSUserSOC", f"Reserved 0x{EvHVESSUserSOC:02X}")
@@ -2125,7 +2127,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvACActivePower Page: 105")
                     if EvACActivePower >= 0xFF00:
                         update_op_data("EvACActivePower", f"N/A")
-                    elif EvACActivePower >= 0xFF00:
+                    elif EvACActivePower >= 0xFE00:
                         update_op_data("EvACActivePower", f"Error")
                     elif EvACActivePower >= 0xFB00:
                         update_op_data("EvACActivePower", f"Reserved 0x{EvACActivePower:02X}")
@@ -2136,7 +2138,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvACReactivePower Page: 105")
                     if EvACReactivePower >= 0xFF00:
                         update_op_data("EvACReactivePower", f"N/A")
-                    elif EvACReactivePower >= 0xFF00:
+                    elif EvACReactivePower >= 0xFE00:
                         update_op_data("EvACReactivePower", f"Error")
                     elif EvACReactivePower >= 0xFB00:
                         update_op_data("EvACReactivePower", f"Reserved 0x{EvACReactivePower:02X}")
@@ -2147,7 +2149,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvACFrequency Page: 105")
                     if EvACFrequency >= 0xFF:
                         update_op_data("EvACFrequency", f"N/A")
-                    elif EvACFrequency >= 0xFF:
+                    elif EvACFrequency >= 0xFE:
                         update_op_data("EvACFrequency", f"Error")
                     elif EvACFrequency >= 0xFB:
                         update_op_data("EvACFrequency", f"Reserved 0x{EvACFrequency:02X}")
@@ -2159,7 +2161,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvL1NVolts Page: 106")
                     if EvL1NVolts >= 0xFF00:
                         update_op_data("EvL1NVolts", f"N/A")
-                    elif EvL1NVolts >= 0xFF00:
+                    elif EvL1NVolts >= 0xFE00:
                         update_op_data("EvL1NVolts", f"Error")
                     elif EvL1NVolts >= 0xFB00:
                         update_op_data("EvL1NVolts", f"Reserved 0x{EvL1NVolts:02X}")
@@ -2170,7 +2172,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvL2NVolts Page: 106")
                     if EvL2NVolts >= 0xFF00:
                         update_op_data("EvL2NVolts", f"N/A")
-                    elif EvL2NVolts >= 0xFF00:
+                    elif EvL2NVolts >= 0xFE00:
                         update_op_data("EvL2NVolts", f"Error")
                     elif EvL2NVolts >= 0xFB00:
                         update_op_data("EvL2NVolts", f"Reserved 0x{EvL2NVolts:02X}")
@@ -2181,7 +2183,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvL3NVolts Page: 106")
                     if EvL3NVolts >= 0xFF00:
                         update_op_data("EvL3NVolts", f"N/A")
-                    elif EvL3NVolts >= 0xFF00:
+                    elif EvL3NVolts >= 0xFE00:
                         update_op_data("EvL3NVolts", f"Error")
                     elif EvL3NVolts >= 0xFB00:
                         update_op_data("EvL3NVolts", f"Reserved 0x{EvL3NVolts:02X}")
@@ -2193,7 +2195,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvAmbientTemp Page: 107")
                     if EvAmbientTemp >= 0xFF00:
                         update_op_data("EvAmbientTemp", f"N/A")
-                    elif EvAmbientTemp >= 0xFF00:
+                    elif EvAmbientTemp >= 0xFE00:
                         update_op_data("EvAmbientTemp", f"Error")
                     elif EvAmbientTemp >= 0xFB00:
                         update_op_data("EvAmbientTemp", f"Reserved 0x{EvAmbientTemp:02X}")
@@ -2204,7 +2206,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvCabinTemp Page: 107")
                     if EvCabinTemp >= 0xFF00:
                         update_op_data("EvCabinTemp", f"N/A")
-                    elif EvCabinTemp >= 0xFF00:
+                    elif EvCabinTemp >= 0xFE00:
                         update_op_data("EvCabinTemp", f"Error")
                     elif EvCabinTemp >= 0xFB00:
                         update_op_data("EvCabinTemp", f"Reserved 0x{EvCabinTemp:02X}")
@@ -2216,7 +2218,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSCellTemp Page: 108")
                     if EvHVESSCellTemp >= 0xFF00:
                         update_op_data("EvHVESSCellTemp", f"N/A")
-                    elif EvHVESSCellTemp >= 0xFF00:
+                    elif EvHVESSCellTemp >= 0xFE00:
                         update_op_data("EvHVESSCellTemp", f"Error")
                     elif EvHVESSCellTemp >= 0xFB00:
                         update_op_data("EvHVESSCellTemp", f"Reserved 0x{EvHVESSCellTemp:02X}")
@@ -2227,7 +2229,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvMaxHVESSTemp Page: 108")
                     if EvMaxHVESSTemp >= 0xFF00:
                         update_op_data("EvMaxHVESSTemp", f"N/A")
-                    elif EvMaxHVESSTemp >= 0xFF00:
+                    elif EvMaxHVESSTemp >= 0xFE00:
                         update_op_data("EvMaxHVESSTemp", f"Error")
                     elif EvMaxHVESSTemp >= 0xFB00:
                         update_op_data("EvMaxHVESSTemp", f"Reserved 0x{EvMaxHVESSTemp:02X}")
@@ -2238,7 +2240,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvMinHVESSTemp Page: 108")
                     if EvMinHVESSTemp >= 0xFF00:
                         update_op_data("EvMinHVESSTemp", f"N/A")
-                    elif EvMinHVESSTemp >= 0xFF00:
+                    elif EvMinHVESSTemp >= 0xFE00:
                         update_op_data("EvMinHVESSTemp", f"Error")
                     elif EvMinHVESSTemp >= 0xFB00:
                         update_op_data("EvMinHVESSTemp", f"Reserved 0x{EvMinHVESSTemp:02X}")
@@ -2249,7 +2251,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSElecTemp Page: 108")
                     if EvHVESSElecTemp >= 0xFF:
                         update_op_data("EvHVESSElecTemp", f"N/A")
-                    elif EvHVESSElecTemp >= 0xFF:
+                    elif EvHVESSElecTemp >= 0xFE:
                         update_op_data("EvHVESSElecTemp", f"Error")
                     elif EvHVESSElecTemp >= 0xFB:
                         update_op_data("EvHVESSElecTemp", f"Reserved 0x{EvHVESSElecTemp:02X}")
@@ -2261,7 +2263,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvMaxHVESSCellVolt Page: 109")
                     if EvMaxHVESSCellVolt >= 0xFF00:
                         update_op_data("EvMaxHVESSCellVolt", f"N/A")
-                    elif EvMaxHVESSCellVolt >= 0xFF00:
+                    elif EvMaxHVESSCellVolt >= 0xFE00:
                         update_op_data("EvMaxHVESSCellVolt", f"Error")
                     elif EvMaxHVESSCellVolt >= 0xFB00:
                         update_op_data("EvMaxHVESSCellVolt", f"Reserved 0x{EvMaxHVESSCellVolt:02X}")
@@ -2272,7 +2274,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvMinHVESSCellVolt Page: 109")
                     if EvMinHVESSCellVolt >= 0xFF00:
                         update_op_data("EvMinHVESSCellVolt", f"N/A")
-                    elif EvMinHVESSCellVolt >= 0xFF00:
+                    elif EvMinHVESSCellVolt >= 0xFE00:
                         update_op_data("EvMinHVESSCellVolt", f"Error")
                     elif EvMinHVESSCellVolt >= 0xFB00:
                         update_op_data("EvMinHVESSCellVolt", f"Reserved 0x{EvMinHVESSCellVolt:02X}")
@@ -2283,7 +2285,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvNumHVESSCellBalancing Page: 109")
                     if EvNumHVESSCellBalancing >= 0xFF00:
                         update_op_data("EvNumHVESSCellBalancing", f"N/A")
-                    elif EvNumHVESSCellBalancing >= 0xFF00:
+                    elif EvNumHVESSCellBalancing >= 0xFE00:
                         update_op_data("EvNumHVESSCellBalancing", f"Error")
                     elif EvNumHVESSCellBalancing >= 0xFB00:
                         update_op_data("EvNumHVESSCellBalancing", f"Reserved 0x{EvNumHVESSCellBalancing:02X}")
@@ -2346,7 +2348,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvChargerTemp Page: 110")
                     if EvChargerTemp >= 0xFF00:
                         update_op_data("EvChargerTemp", f"N/A")
-                    elif EvChargerTemp >= 0xFF00:
+                    elif EvChargerTemp >= 0xFE00:
                         update_op_data("EvChargerTemp", f"Error")
                     elif EvChargerTemp >= 0xFB00:
                         update_op_data("EvChargerTemp", f"Reserved 0x{EvChargerTemp:02X}")
@@ -2357,7 +2359,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvMaxChargerTemp Page: 110")
                     if EvMaxChargerTemp >= 0xFF00:
                         update_op_data("EvMaxChargerTemp", f"N/A")
-                    elif EvMaxChargerTemp >= 0xFF00:
+                    elif EvMaxChargerTemp >= 0xFE00:
                         update_op_data("EvMaxChargerTemp", f"Error")
                     elif EvMaxChargerTemp >= 0xFB00:
                         update_op_data("EvMaxChargerTemp", f"Reserved 0x{EvMaxChargerTemp:02X}")
@@ -2368,7 +2370,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvInletTemp Page: 110")
                     if EvInletTemp >= 0xFF:
                         update_op_data("EvInletTemp", f"N/A")
-                    elif EvInletTemp >= 0xFF:
+                    elif EvInletTemp >= 0xFE:
                         update_op_data("EvInletTemp", f"Error")
                     elif EvInletTemp >= 0xFB:
                         update_op_data("EvInletTemp", f"Reserved 0x{EvInletTemp:02X}")
@@ -2379,12 +2381,58 @@ def display_frames(chunks):
                     result_display.append(f"    EvHVESSTemp Page: 110")
                     if EvHVESSTemp >= 0xFF:
                         update_op_data("EvHVESSTemp", f"N/A")
-                    elif EvHVESSTemp >= 0xFF:
+                    elif EvHVESSTemp >= 0xFE:
                         update_op_data("EvHVESSTemp", f"Error")
                     elif EvHVESSTemp >= 0xFB:
                         update_op_data("EvHVESSTemp", f"Reserved 0x{EvHVESSTemp:02X}")
                     else:
                         update_op_data("EvHVESSTemp", f"{(EvHVESSTemp) - 40} C")
+
+                elif page == 111:
+                    EvCurWattCharge = (databytes[2] << 8) | (databytes[1])
+                    result_display.append(f"   EvCurWattCharge Page: 111")
+                    if EvCurWattCharge >= 0xFF00:
+                        update_op_data("EvCurWattCharge", f"N/A")
+                    elif EvCurWattCharge >= 0xFE00:
+                        update_op_data("EvCurWattCharge", f"Error")
+                    elif EvCurWattCharge >= 0xFB00:
+                        update_op_data("EvCurWattCharge", f"Reserved 0x{EvCurWattCharge:02X}")
+                    else:
+                        update_op_data("EvCurWattCharge", f"{(EvCurWattCharge * 0.050000):.3f} kW")
+
+                    EvCurWattDischarge = (databytes[4] << 8) | (databytes[3])
+                    result_display.append(f"   EvCurWattDischarge Page: 111")
+                    if EvCurWattDischarge >= 0xFF00:
+                        update_op_data("EvCurWattDischarge", f"N/A")
+                    elif EvCurWattDischarge >= 0xFE00:
+                        update_op_data("EvCurWattDischarge", f"Error")
+                    elif EvCurWattDischarge >= 0xFB00:
+                        update_op_data("EvCurWattDischarge", f"Reserved 0x{EvCurWattDischarge:02X}")
+                    else:
+                        update_op_data("EvCurWattDischarge", f"{(EvCurWattDischarge * 0.050000):.3f} kW")
+
+                elif page == 112:
+                    EvCurVarAbsorb = (databytes[2] << 8) | (databytes[1])
+                    result_display.append(f"   EvCurVarAbsorb Page: 112")
+                    if EvCurVarAbsorb >= 0xFF00:
+                        update_op_data("EvCurVarAbsorb", f"N/A")
+                    elif EvCurVarAbsorb >= 0xFE00:
+                        update_op_data("EvCurVarAbsorb", f"Error")
+                    elif EvCurVarAbsorb >= 0xFB00:
+                        update_op_data("EvCurVarAbsorb", f"Reserved 0x{EvCurVarAbsorb:02X}")
+                    else:
+                        update_op_data("EvCurVarAbsorb", f"{(EvCurVarAbsorb * 0.050000):.3f} kVA")
+                    EvCurVarSupply = (databytes[4] << 8) | (databytes[3])
+                    result_display.append(f"   EvCurVarSupply Page: 112")
+                    if EvCurVarSupply >= 0xFF00:
+                        update_op_data("EvCurVarSupply", f"N/A")
+                    elif EvCurVarSupply >= 0xFE00:
+                        update_op_data("EvCurVarSupply", f"Error")
+                    elif EvCurVarSupply >= 0xFB00:
+                        update_op_data("EvCurVarSupply", f"Reserved 0x{EvCurVarSupply:02X}")
+                    else:
+                        update_op_data("EvCurVarSupply", f"{(EvCurVarSupply * 0.050000):.3f} kVA")
+
 
                 elif page == 251:
                     EvCrc32 = (databytes[4] << 24) | (databytes[3] << 16) | (databytes[2] << 8) | (databytes[1])
@@ -2643,7 +2691,7 @@ def display_frames(chunks):
                     result_display.append(f"    SePropDataIdent Page: 48")
                     if SePropDataIdent >= 0xFF:
                         update_op_data("SePropDataIdent", f"N/A")
-                    elif SePropDataIdent >= 0xFF:
+                    elif SePropDataIdent >= 0xFE:
                         update_op_data("SePropDataIdent", f"Error")
                     elif SePropDataIdent >= 0xFB:
                         update_op_data("SePropDataIdent", f"Reserved 0x{SePropDataIdent:02X}")
@@ -2654,7 +2702,7 @@ def display_frames(chunks):
                     result_display.append(f"    SePropDataRev Page: 48")
                     if SePropDataRev >= 0xFF:
                         update_op_data("SePropDataRev", f"N/A")
-                    elif SePropDataRev >= 0xFF:
+                    elif SePropDataRev >= 0xFE:
                         update_op_data("SePropDataRev", f"Error")
                     elif SePropDataRev >= 0xFB:
                         update_op_data("SePropDataRev", f"Reserved 0x{SePropDataRev:02X}")
@@ -2672,7 +2720,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeAmbientTemp Page: 97")
                     if SeAmbientTemp >= 0xFF00:
                         update_op_data("SeAmbientTemp", f"N/A")
-                    elif SeAmbientTemp >= 0xFF00:
+                    elif SeAmbientTemp >= 0xFE00:
                         update_op_data("SeAmbientTemp", f"Error")
                     elif SeAmbientTemp >= 0xFB00:
                         update_op_data("SeAmbientTemp", f"Reserved 0x{SeAmbientTemp:02X}")
@@ -2683,7 +2731,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeConnectorTemp Page: 97")
                     if SeConnectorTemp >= 0xFF:
                         update_op_data("SeConnectorTemp", f"N/A")
-                    elif SeConnectorTemp >= 0xFF:
+                    elif SeConnectorTemp >= 0xFE:
                         update_op_data("SeConnectorTemp", f"Error")
                     elif SeConnectorTemp >= 0xFB:
                         update_op_data("SeConnectorTemp", f"Reserved 0x{SeConnectorTemp:02X}")
@@ -2694,7 +2742,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeOutletTemp Page: 97")
                     if SeOutletTemp >= 0xFF:
                         update_op_data("SeOutletTemp", f"N/A")
-                    elif SeOutletTemp >= 0xFF:
+                    elif SeOutletTemp >= 0xFE:
                         update_op_data("SeOutletTemp", f"Error")
                     elif SeOutletTemp >= 0xFB:
                         update_op_data("SeOutletTemp", f"Reserved 0x{SeOutletTemp:02X}")
@@ -2797,7 +2845,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeExptTripPerct Page: 98")
                     if SeExptTripPerct >= 0xFF:
                         update_op_data("SeExptTripPerct", f"N/A")
-                    elif SeExptTripPerct >= 0xFF:
+                    elif SeExptTripPerct >= 0xFE:
                         update_op_data("SeExptTripPerct", f"Error")
                     elif SeExptTripPerct >= 0xFB:
                         update_op_data("SeExptTripPerct", f"Reserved 0x{SeExptTripPerct:02X}")
@@ -2809,7 +2857,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeTimeReqNum Page: 99")
                     if SeTimeReqNum >= 0xFF:
                         update_op_data("SeTimeReqNum", f"N/A")
-                    elif SeTimeReqNum >= 0xFF:
+                    elif SeTimeReqNum >= 0xFE:
                         update_op_data("SeTimeReqNum", f"Error")
                     elif SeTimeReqNum >= 0xFB:
                         update_op_data("SeTimeReqNum", f"Reserved 0x{SeTimeReqNum:02X}")
@@ -2820,7 +2868,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHVESSRangeCalc Page: 99")
                     if SeHVESSRangeCalc >= 0xFF00:
                         update_op_data("SeHVESSRangeCalc", f"N/A")
-                    elif SeHVESSRangeCalc >= 0xFF00:
+                    elif SeHVESSRangeCalc >= 0xFE00:
                         update_op_data("SeHVESSRangeCalc", f"Error")
                     elif SeHVESSRangeCalc >= 0xFB00:
                         update_op_data("SeHVESSRangeCalc", f"Reserved 0x{SeHVESSRangeCalc:02X}")
@@ -2831,7 +2879,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHVESSEnergyCalc Page: 99")
                     if SeHVESSEnergyCalc >= 0xFF0000:
                         update_op_data("SeHVESSEnergyCalc", f"N/A")
-                    elif SeHVESSEnergyCalc >= 0xFF0000:
+                    elif SeHVESSEnergyCalc >= 0xFE0000:
                         update_op_data("SeHVESSEnergyCalc", f"Error")
                     elif SeHVESSEnergyCalc >= 0xFB0000:
                         update_op_data("SeHVESSEnergyCalc", f"Reserved 0x{SeHVESSEnergyCalc:02X}")
@@ -2855,10 +2903,10 @@ def display_frames(chunks):
             elif frame_id == 0x15:  # EvModeCtrl (21)
                 result_display.append("  Interpretation: EvModeCtrl")
                 if len(databytes) >= 8:
-                    # --- EvGridCodeStatus & EvGridCodeStatusMod (Bytes 0-1) ---
+                    # --- EvGridCodeStatusMod (bit 0) & EvGridCodeStatus (bits 1-15), J3068/2 Table 2 ---
                     raw_grid_code = (databytes[1] << 8) | databytes[0]
-                    grid_code_mod_val = (raw_grid_code >> 15) & 0x01
-                    grid_code_status_val = raw_grid_code & 0x7FFF
+                    grid_code_mod_val = raw_grid_code & 0x01
+                    grid_code_status_val = (raw_grid_code >> 1) & 0x7FFF
 
                     grid_code_mod_str = "Modified" if grid_code_mod_val == 0 else "Unmodified/Not Configured"
 
@@ -2933,9 +2981,11 @@ def display_frames(chunks):
             elif frame_id == 0x16:  # SeModeCtrl (22)
                 result_display.append("  Interpretation: SeModeCtrl")
                 if len(databytes) >= 8:
-                    # --- SeGridCodeRequest (Bytes 0-1) ---
+                    # --- SeGridCodeRequest (bits 1-15; bit 0 reserved) ---
+                    # The printed J3068/2 Table 2 row says bits 2-15, 14 bits for a 15-bit
+                    # signal (6.1.9); like frame 21 and the reference LDF, it is bits 1-15.
                     raw_grid_req = (databytes[1] << 8) | databytes[0]
-                    grid_req_val = (raw_grid_req >> 2) & 0x3FFF # Extract 14 bits
+                    grid_req_val = (raw_grid_req >> 1) & 0x7FFF
 
                     grid_req_map = {
                         0x0001: "Request basic V2G settings A",
@@ -3026,145 +3076,114 @@ def display_frames(chunks):
                 elif page == 1:
                     EvPwrCtrlModesSpt = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvPwrCtrlModesSpt Page: 1")
-                    if EvPwrCtrlModesSpt >= 0xFF00:
-                        update_op_data("EvPwrCtrlModesSpt", f"N/A")
-                    elif EvPwrCtrlModesSpt >= 0xFF00:
-                        update_op_data("EvPwrCtrlModesSpt", f"Error")
-                    elif EvPwrCtrlModesSpt >= 0xFB00:
-                        update_op_data("EvPwrCtrlModesSpt", f"Reserved 0x{EvPwrCtrlModesSpt:02X}")
-                    else:
-                        update_op_data("EvPwrCtrlModesSpt", f"0x{(EvPwrCtrlModesSpt):02X} ")
+                    update_op_data("EvPwrCtrlModesSpt", f"0x{EvPwrCtrlModesSpt:04X}")  # bitmask: one bit per supported mode
 
                     EvSupGridCode1 = (databytes[4] << 8) | (databytes[3])
                     result_display.append(f"    EvSupGridCode1 Page: 1")
-                    if EvSupGridCode1 >= 0xFF00:
+                    if EvSupGridCode1 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode1", f"N/A")
-                    elif EvSupGridCode1 >= 0xFF00:
-                        update_op_data("EvSupGridCode1", f"Error")
-                    elif EvSupGridCode1 >= 0xFB00:
-                        update_op_data("EvSupGridCode1", f"Reserved 0x{EvSupGridCode1:02X}")
+                    elif 0x0001 <= EvSupGridCode1 <= 0x0004 or 0x7000 <= EvSupGridCode1 <= 0x7FFA:
+                        update_op_data("EvSupGridCode1", f"0x{EvSupGridCode1:04X}")
                     else:
-                        update_op_data("EvSupGridCode1", f"0x{(EvSupGridCode1):02X} ")
+                        update_op_data("EvSupGridCode1", f"Reserved 0x{EvSupGridCode1:04X}")
 
                     EvSupGridCode2 = (databytes[6] << 8) | (databytes[5])
                     result_display.append(f"    EvSupGridCode2 Page: 1")
-                    if EvSupGridCode2 >= 0xFF00:
+                    if EvSupGridCode2 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode2", f"N/A")
-                    elif EvSupGridCode2 >= 0xFF00:
-                        update_op_data("EvSupGridCode2", f"Error")
-                    elif EvSupGridCode2 >= 0xFB00:
-                        update_op_data("EvSupGridCode2", f"Reserved 0x{EvSupGridCode2:02X}")
+                    elif 0x0001 <= EvSupGridCode2 <= 0x0004 or 0x7000 <= EvSupGridCode2 <= 0x7FFA:
+                        update_op_data("EvSupGridCode2", f"0x{EvSupGridCode2:04X}")
                     else:
-                        update_op_data("EvSupGridCode2", f"0x{(EvSupGridCode2):02X} ")
+                        update_op_data("EvSupGridCode2", f"Reserved 0x{EvSupGridCode2:04X}")
 
                 elif page == 2:
                     EvSupGridCode3 = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvSupGridCode3 Page: 2")
-                    if EvSupGridCode3 >= 0xFF00:
+                    if EvSupGridCode3 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode3", f"N/A")
-                    elif EvSupGridCode3 >= 0xFF00:
-                        update_op_data("EvSupGridCode3", f"Error")
-                    elif EvSupGridCode3 >= 0xFB00:
-                        update_op_data("EvSupGridCode3", f"Reserved 0x{EvSupGridCode3:02X}")
+                    elif 0x0001 <= EvSupGridCode3 <= 0x0004 or 0x7000 <= EvSupGridCode3 <= 0x7FFA:
+                        update_op_data("EvSupGridCode3", f"0x{EvSupGridCode3:04X}")
                     else:
-                        update_op_data("EvSupGridCode3", f"0x{(EvSupGridCode3):02X} ")
+                        update_op_data("EvSupGridCode3", f"Reserved 0x{EvSupGridCode3:04X}")
 
                     EvSupGridCode4 = (databytes[4] << 8) | (databytes[3])
                     result_display.append(f"    EvSupGridCode4 Page: 2")
-                    if EvSupGridCode4 >= 0xFF00:
+                    if EvSupGridCode4 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode4", f"N/A")
-                    elif EvSupGridCode4 >= 0xFF00:
-                        update_op_data("EvSupGridCode4", f"Error")
-                    elif EvSupGridCode4 >= 0xFB00:
-                        update_op_data("EvSupGridCode4", f"Reserved 0x{EvSupGridCode4:02X}")
+                    elif 0x0001 <= EvSupGridCode4 <= 0x0004 or 0x7000 <= EvSupGridCode4 <= 0x7FFA:
+                        update_op_data("EvSupGridCode4", f"0x{EvSupGridCode4:04X}")
                     else:
-                        update_op_data("EvSupGridCode4", f"0x{(EvSupGridCode4):02X} ")
+                        update_op_data("EvSupGridCode4", f"Reserved 0x{EvSupGridCode4:04X}")
 
                     EvSupGridCode5 = (databytes[6] << 8) | (databytes[5])
                     result_display.append(f"    EvSupGridCode5 Page: 2")
-                    if EvSupGridCode5 >= 0xFF00:
+                    if EvSupGridCode5 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode5", f"N/A")
-                    elif EvSupGridCode5 >= 0xFF00:
-                        update_op_data("EvSupGridCode5", f"Error")
-                    elif EvSupGridCode5 >= 0xFB00:
-                        update_op_data("EvSupGridCode5", f"Reserved 0x{EvSupGridCode5:02X}")
+                    elif 0x0001 <= EvSupGridCode5 <= 0x0004 or 0x7000 <= EvSupGridCode5 <= 0x7FFA:
+                        update_op_data("EvSupGridCode5", f"0x{EvSupGridCode5:04X}")
                     else:
-                        update_op_data("EvSupGridCode5", f"0x{(EvSupGridCode5):02X} ")
+                        update_op_data("EvSupGridCode5", f"Reserved 0x{EvSupGridCode5:04X}")
 
                 elif page == 3:
                     EvSupGridCode6 = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvSupGridCode6 Page: 3")
-                    if EvSupGridCode6 >= 0xFF00:
+                    if EvSupGridCode6 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode6", f"N/A")
-                    elif EvSupGridCode6 >= 0xFF00:
-                        update_op_data("EvSupGridCode6", f"Error")
-                    elif EvSupGridCode6 >= 0xFB00:
-                        update_op_data("EvSupGridCode6", f"Reserved 0x{EvSupGridCode6:02X}")
+                    elif 0x0001 <= EvSupGridCode6 <= 0x0004 or 0x7000 <= EvSupGridCode6 <= 0x7FFA:
+                        update_op_data("EvSupGridCode6", f"0x{EvSupGridCode6:04X}")
                     else:
-                        update_op_data("EvSupGridCode6", f"0x{(EvSupGridCode6):02X} ")
+                        update_op_data("EvSupGridCode6", f"Reserved 0x{EvSupGridCode6:04X}")
 
                     EvSupGridCode7 = (databytes[4] << 8) | (databytes[3])
                     result_display.append(f"    EvSupGridCode7 Page: 3")
-                    if EvSupGridCode7 >= 0xFF00:
+                    if EvSupGridCode7 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode7", f"N/A")
-                    elif EvSupGridCode7 >= 0xFF00:
-                        update_op_data("EvSupGridCode7", f"Error")
-                    elif EvSupGridCode7 >= 0xFB00:
-                        update_op_data("EvSupGridCode7", f"Reserved 0x{EvSupGridCode7:02X}")
+                    elif 0x0001 <= EvSupGridCode7 <= 0x0004 or 0x7000 <= EvSupGridCode7 <= 0x7FFA:
+                        update_op_data("EvSupGridCode7", f"0x{EvSupGridCode7:04X}")
                     else:
-                        update_op_data("EvSupGridCode7", f"0x{(EvSupGridCode7):02X} ")
+                        update_op_data("EvSupGridCode7", f"Reserved 0x{EvSupGridCode7:04X}")
 
                     EvSupGridCode8 = (databytes[6] << 8) | (databytes[5])
                     result_display.append(f"    EvSupGridCode8 Page: 3")
-                    if EvSupGridCode8 >= 0xFF00:
+                    if EvSupGridCode8 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode8", f"N/A")
-                    elif EvSupGridCode8 >= 0xFF00:
-                        update_op_data("EvSupGridCode8", f"Error")
-                    elif EvSupGridCode8 >= 0xFB00:
-                        update_op_data("EvSupGridCode8", f"Reserved 0x{EvSupGridCode8:02X}")
+                    elif 0x0001 <= EvSupGridCode8 <= 0x0004 or 0x7000 <= EvSupGridCode8 <= 0x7FFA:
+                        update_op_data("EvSupGridCode8", f"0x{EvSupGridCode8:04X}")
                     else:
-                        update_op_data("EvSupGridCode8", f"0x{(EvSupGridCode8):02X} ")
+                        update_op_data("EvSupGridCode8", f"Reserved 0x{EvSupGridCode8:04X}")
 
                 elif page == 4:
                     EvSupGridCode9 = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    EvSupGridCode9 Page: 4")
-                    if EvSupGridCode9 >= 0xFF00:
+                    if EvSupGridCode9 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode9", f"N/A")
-                    elif EvSupGridCode9 >= 0xFF00:
-                        update_op_data("EvSupGridCode9", f"Error")
-                    elif EvSupGridCode9 >= 0xFB00:
-                        update_op_data("EvSupGridCode9", f"Reserved 0x{EvSupGridCode9:02X}")
+                    elif 0x0001 <= EvSupGridCode9 <= 0x0004 or 0x7000 <= EvSupGridCode9 <= 0x7FFA:
+                        update_op_data("EvSupGridCode9", f"0x{EvSupGridCode9:04X}")
                     else:
-                        update_op_data("EvSupGridCode9", f"0x{(EvSupGridCode9):02X} ")
+                        update_op_data("EvSupGridCode9", f"Reserved 0x{EvSupGridCode9:04X}")
 
                     EvSupGridCode10 = (databytes[4] << 8) | (databytes[3])
                     result_display.append(f"    EvSupGridCode10 Page: 4")
-                    if EvSupGridCode10 >= 0xFF00:
+                    if EvSupGridCode10 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode10", f"N/A")
-                    elif EvSupGridCode10 >= 0xFF00:
-                        update_op_data("EvSupGridCode10", f"Error")
-                    elif EvSupGridCode10 >= 0xFB00:
-                        update_op_data("EvSupGridCode10", f"Reserved 0x{EvSupGridCode10:02X}")
+                    elif 0x0001 <= EvSupGridCode10 <= 0x0004 or 0x7000 <= EvSupGridCode10 <= 0x7FFA:
+                        update_op_data("EvSupGridCode10", f"0x{EvSupGridCode10:04X}")
                     else:
-                        update_op_data("EvSupGridCode10", f"0x{(EvSupGridCode10):02X} ")
+                        update_op_data("EvSupGridCode10", f"Reserved 0x{EvSupGridCode10:04X}")
 
                     EvSupGridCode11 = (databytes[6] << 8) | (databytes[5])
                     result_display.append(f"    EvSupGridCode11 Page: 4")
-                    if EvSupGridCode11 >= 0xFF00:
+                    if EvSupGridCode11 in (0x7FFF, 0xFFFF):
                         update_op_data("EvSupGridCode11", f"N/A")
-                    elif EvSupGridCode11 >= 0xFF00:
-                        update_op_data("EvSupGridCode11", f"Error")
-                    elif EvSupGridCode11 >= 0xFB00:
-                        update_op_data("EvSupGridCode11", f"Reserved 0x{EvSupGridCode11:02X}")
+                    elif 0x0001 <= EvSupGridCode11 <= 0x0004 or 0x7000 <= EvSupGridCode11 <= 0x7FFA:
+                        update_op_data("EvSupGridCode11", f"0x{EvSupGridCode11:04X}")
                     else:
-                        update_op_data("EvSupGridCode11", f"0x{(EvSupGridCode11):02X} ")
+                        update_op_data("EvSupGridCode11", f"Reserved 0x{EvSupGridCode11:04X}")
 
                     EvRemGridCode = (databytes[7])
                     result_display.append(f"    EvRemGridCode Page: 4")
                     if EvRemGridCode >= 0xFF:
                         update_op_data("EvRemGridCode", f"N/A")
-                    elif EvRemGridCode >= 0xFF:
-                        update_op_data("EvRemGridCode", f"Error")
                     elif EvRemGridCode >= 0xFB:
                         update_op_data("EvRemGridCode", f"Reserved 0x{EvRemGridCode:02X}")
                     else:
@@ -3175,7 +3194,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvVRefL1N Page: 5")
                     if EvVRefL1N >= 0xFF00:
                         update_op_data("EvVRefL1N", f"N/A")
-                    elif EvVRefL1N >= 0xFF00:
+                    elif EvVRefL1N >= 0xFE00:
                         update_op_data("EvVRefL1N", f"Error")
                     elif EvVRefL1N >= 0xFB00:
                         update_op_data("EvVRefL1N", f"Reserved 0x{EvVRefL1N:02X}")
@@ -3186,7 +3205,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvVRefLL Page: 5")
                     if EvVRefLL >= 0xFF00:
                         update_op_data("EvVRefLL", f"N/A")
-                    elif EvVRefLL >= 0xFF00:
+                    elif EvVRefLL >= 0xFE00:
                         update_op_data("EvVRefLL", f"Error")
                     elif EvVRefLL >= 0xFB00:
                         update_op_data("EvVRefLL", f"Reserved 0x{EvVRefLL:02X}")
@@ -3198,7 +3217,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvWMaxRtg Page: 6")
                     if EvWMaxRtg >= 0xFF00:
                         update_op_data("EvWMaxRtg", f"N/A")
-                    elif EvWMaxRtg >= 0xFF00:
+                    elif EvWMaxRtg >= 0xFE00:
                         update_op_data("EvWMaxRtg", f"Error")
                     elif EvWMaxRtg >= 0xFB00:
                         update_op_data("EvWMaxRtg", f"Reserved 0x{EvWMaxRtg:02X}")
@@ -3209,7 +3228,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvVAMaxRtg Page: 6")
                     if EvVAMaxRtg >= 0xFF00:
                         update_op_data("EvVAMaxRtg", f"N/A")
-                    elif EvVAMaxRtg >= 0xFF00:
+                    elif EvVAMaxRtg >= 0xFE00:
                         update_op_data("EvVAMaxRtg", f"Error")
                     elif EvVAMaxRtg >= 0xFB00:
                         update_op_data("EvVAMaxRtg", f"Reserved 0x{EvVAMaxRtg:02X}")
@@ -3220,7 +3239,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvIvarMaxRtg Page: 6")
                     if EvIvarMaxRtg >= 0xFF00:
                         update_op_data("EvIvarMaxRtg", f"N/A")
-                    elif EvIvarMaxRtg >= 0xFF00:
+                    elif EvIvarMaxRtg >= 0xFE00:
                         update_op_data("EvIvarMaxRtg", f"Error")
                     elif EvIvarMaxRtg >= 0xFB00:
                         update_op_data("EvIvarMaxRtg", f"Reserved 0x{EvIvarMaxRtg:02X}")
@@ -3232,7 +3251,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvAvarMaxRtg Page: 7")
                     if EvAvarMaxRtg >= 0xFF00:
                         update_op_data("EvAvarMaxRtg", f"N/A")
-                    elif EvAvarMaxRtg >= 0xFF00:
+                    elif EvAvarMaxRtg >= 0xFE00:
                         update_op_data("EvAvarMaxRtg", f"Error")
                     elif EvAvarMaxRtg >= 0xFB00:
                         update_op_data("EvAvarMaxRtg", f"Reserved 0x{EvAvarMaxRtg:02X}")
@@ -3243,7 +3262,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvChaWMaxRtg Page: 7")
                     if EvChaWMaxRtg >= 0xFF00:
                         update_op_data("EvChaWMaxRtg", f"N/A")
-                    elif EvChaWMaxRtg >= 0xFF00:
+                    elif EvChaWMaxRtg >= 0xFE00:
                         update_op_data("EvChaWMaxRtg", f"Error")
                     elif EvChaWMaxRtg >= 0xFB00:
                         update_op_data("EvChaWMaxRtg", f"Reserved 0x{EvChaWMaxRtg:02X}")
@@ -3254,7 +3273,7 @@ def display_frames(chunks):
                     result_display.append(f"    EvChaVAMaxRtg Page: 7")
                     if EvChaVAMaxRtg >= 0xFF00:
                         update_op_data("EvChaVAMaxRtg", f"N/A")
-                    elif EvChaVAMaxRtg >= 0xFF00:
+                    elif EvChaVAMaxRtg >= 0xFE00:
                         update_op_data("EvChaVAMaxRtg", f"Error")
                     elif EvChaVAMaxRtg >= 0xFB00:
                         update_op_data("EvChaVAMaxRtg", f"Reserved 0x{EvChaVAMaxRtg:02X}")
@@ -3282,12 +3301,14 @@ def display_frames(chunks):
                     process_stage(evJ3072_buffer, "EvInverterSMN", string_position = 28,  data_bytes = databytes[1:5], field_total_length = 32)
 
                 elif page == 13:
-                    result_display.append(f"    EvCertificationDate Page: {page} (Buffering Data)")
-                    process_stage(evJ3072_buffer, "EvCertificationDate", string_position = 0,  data_bytes = databytes[1:8], field_total_length = 7)
+                    EvCertificationDate = format_j3072_time(databytes[1:8])  # 56-bit time, not text
+                    result_display.append(f"    EvCertificationDate Page: {page}: {EvCertificationDate}")
+                    update_op_data("EvCertificationDate", EvCertificationDate)
 
                 elif page == 14:
-                    result_display.append(f"    EvUpdateTime Page: {page} (Buffering Data)")
-                    process_stage(evJ3072_buffer, "EvUpdateTime", string_position = 0,  data_bytes = databytes[1:8], field_total_length = 7)
+                    EvUpdateTime = format_j3072_time(databytes[1:8])  # 56-bit time, not text
+                    result_display.append(f"    EvUpdateTime Page: {page}: {EvUpdateTime}")
+                    update_op_data("EvUpdateTime", EvUpdateTime)
 
 
             elif frame_id == 0x18:  # SeJ3072 (24)
@@ -3310,20 +3331,13 @@ def display_frames(chunks):
                 elif page == 1:
                     SePwrCtrlModesSpt = (databytes[2] << 8) | (databytes[1])
                     result_display.append(f"    SePwrCtrlModesSpt Page: 1")
-                    if SePwrCtrlModesSpt >= 0xFF00:
-                        update_op_data("SePwrCtrlModesSpt", f"N/A")
-                    elif SePwrCtrlModesSpt >= 0xFF00:
-                        update_op_data("SePwrCtrlModesSpt", f"Error")
-                    elif SePwrCtrlModesSpt >= 0xFB00:
-                        update_op_data("SePwrCtrlModesSpt", f"Reserved 0x{SePwrCtrlModesSpt:02X}")
-                    else:
-                        update_op_data("SePwrCtrlModesSpt", f"0x{(SePwrCtrlModesSpt):02X} ")
+                    update_op_data("SePwrCtrlModesSpt", f"0x{SePwrCtrlModesSpt:04X}")  # bitmask: one bit per supported mode
 
                     SeWMaxEVSE = (databytes[4] << 8) | (databytes[3])
                     result_display.append(f"    SeWMaxEVSE Page: 1")
                     if SeWMaxEVSE >= 0xFF00:
                         update_op_data("SeWMaxEVSE", f"N/A")
-                    elif SeWMaxEVSE >= 0xFF00:
+                    elif SeWMaxEVSE >= 0xFE00:
                         update_op_data("SeWMaxEVSE", f"Error")
                     elif SeWMaxEVSE >= 0xFB00:
                         update_op_data("SeWMaxEVSE", f"Reserved 0x{SeWMaxEVSE:02X}")
@@ -3334,7 +3348,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeChaWMaxEVSE Page: 1")
                     if SeChaWMaxEVSE >= 0xFF00:
                         update_op_data("SeChaWMaxEVSE", f"N/A")
-                    elif SeChaWMaxEVSE >= 0xFF00:
+                    elif SeChaWMaxEVSE >= 0xFE00:
                         update_op_data("SeChaWMaxEVSE", f"Error")
                     elif SeChaWMaxEVSE >= 0xFB00:
                         update_op_data("SeChaWMaxEVSE", f"Reserved 0x{SeChaWMaxEVSE:02X}")
@@ -3346,7 +3360,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeIvarMaxEVSE Page: 2")
                     if SeIvarMaxEVSE >= 0xFF00:
                         update_op_data("SeIvarMaxEVSE", f"N/A")
-                    elif SeIvarMaxEVSE >= 0xFF00:
+                    elif SeIvarMaxEVSE >= 0xFE00:
                         update_op_data("SeIvarMaxEVSE", f"Error")
                     elif SeIvarMaxEVSE >= 0xFB00:
                         update_op_data("SeIvarMaxEVSE", f"Reserved 0x{SeIvarMaxEVSE:02X}")
@@ -3357,7 +3371,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeAvarMaxEVSE Page: 2")
                     if SeAvarMaxEVSE >= 0xFF00:
                         update_op_data("SeAvarMaxEVSE", f"N/A")
-                    elif SeAvarMaxEVSE >= 0xFF00:
+                    elif SeAvarMaxEVSE >= 0xFE00:
                         update_op_data("SeAvarMaxEVSE", f"Error")
                     elif SeAvarMaxEVSE >= 0xFB00:
                         update_op_data("SeAvarMaxEVSE", f"Reserved 0x{SeAvarMaxEVSE:02X}")
@@ -3365,15 +3379,16 @@ def display_frames(chunks):
                         update_op_data("SeAvarMaxEVSE", f"{(SeAvarMaxEVSE * 16) - 500000} VA")
 
                 elif page == 3:
-                    result_display.append(f"    SeUpdateTimeEVSE Page: {page} (Buffering Data)")
-                    process_stage(seJ3072_buffer, "SeUpdateTimeEVSE", string_position = 0,  data_bytes = databytes[1:8], field_total_length = 7)
+                    SeUpdateTimeEVSE = format_j3072_time(databytes[1:8])  # 56-bit time, not text
+                    result_display.append(f"    SeUpdateTimeEVSE Page: {page}: {SeUpdateTimeEVSE}")
+                    update_op_data("SeUpdateTimeEVSE", SeUpdateTimeEVSE)
 
                 elif page == 4:
                     SeFreqOver1FreqA = (databytes[1])
                     result_display.append(f"    SeFreqOver1FreqA Page: 4")
                     if SeFreqOver1FreqA >= 0xFF:
                         update_op_data("SeFreqOver1FreqA", f"N/A")
-                    elif SeFreqOver1FreqA >= 0xFF:
+                    elif SeFreqOver1FreqA >= 0xFE:
                         update_op_data("SeFreqOver1FreqA", f"Error")
                     elif SeFreqOver1FreqA >= 0xFB:
                         update_op_data("SeFreqOver1FreqA", f"Reserved 0x{SeFreqOver1FreqA:02X}")
@@ -3384,7 +3399,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver1TimeA Page: 4")
                     if SeFreqOver1TimeA >= 0xFF00:
                         update_op_data("SeFreqOver1TimeA", f"N/A")
-                    elif SeFreqOver1TimeA >= 0xFF00:
+                    elif SeFreqOver1TimeA >= 0xFE00:
                         update_op_data("SeFreqOver1TimeA", f"Error")
                     elif SeFreqOver1TimeA >= 0xFB00:
                         update_op_data("SeFreqOver1TimeA", f"Reserved 0x{SeFreqOver1TimeA:02X}")
@@ -3395,7 +3410,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver2FreqA Page: 4")
                     if SeFreqOver2FreqA >= 0xFF:
                         update_op_data("SeFreqOver2FreqA", f"N/A")
-                    elif SeFreqOver2FreqA >= 0xFF:
+                    elif SeFreqOver2FreqA >= 0xFE:
                         update_op_data("SeFreqOver2FreqA", f"Error")
                     elif SeFreqOver2FreqA >= 0xFB:
                         update_op_data("SeFreqOver2FreqA", f"Reserved 0x{SeFreqOver2FreqA:02X}")
@@ -3406,7 +3421,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver2TimeA Page: 4")
                     if SeFreqOver2TimeA >= 0xFF00:
                         update_op_data("SeFreqOver2TimeA", f"N/A")
-                    elif SeFreqOver2TimeA >= 0xFF00:
+                    elif SeFreqOver2TimeA >= 0xFE00:
                         update_op_data("SeFreqOver2TimeA", f"Error")
                     elif SeFreqOver2TimeA >= 0xFB00:
                         update_op_data("SeFreqOver2TimeA", f"Reserved 0x{SeFreqOver2TimeA:02X}")
@@ -3418,7 +3433,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder1FreqA Page: 5")
                     if SeFreqUnder1FreqA >= 0xFF:
                         update_op_data("SeFreqUnder1FreqA", f"N/A")
-                    elif SeFreqUnder1FreqA >= 0xFF:
+                    elif SeFreqUnder1FreqA >= 0xFE:
                         update_op_data("SeFreqUnder1FreqA", f"Error")
                     elif SeFreqUnder1FreqA >= 0xFB:
                         update_op_data("SeFreqUnder1FreqA", f"Reserved 0x{SeFreqUnder1FreqA:02X}")
@@ -3429,7 +3444,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder1TimeA Page: 5")
                     if SeFreqUnder1TimeA >= 0xFF00:
                         update_op_data("SeFreqUnder1TimeA", f"N/A")
-                    elif SeFreqUnder1TimeA >= 0xFF00:
+                    elif SeFreqUnder1TimeA >= 0xFE00:
                         update_op_data("SeFreqUnder1TimeA", f"Error")
                     elif SeFreqUnder1TimeA >= 0xFB00:
                         update_op_data("SeFreqUnder1TimeA", f"Reserved 0x{SeFreqUnder1TimeA:02X}")
@@ -3440,7 +3455,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder2FreqA Page: 5")
                     if SeFreqUnder2FreqA >= 0xFF:
                         update_op_data("SeFreqUnder2FreqA", f"N/A")
-                    elif SeFreqUnder2FreqA >= 0xFF:
+                    elif SeFreqUnder2FreqA >= 0xFE:
                         update_op_data("SeFreqUnder2FreqA", f"Error")
                     elif SeFreqUnder2FreqA >= 0xFB:
                         update_op_data("SeFreqUnder2FreqA", f"Reserved 0x{SeFreqUnder2FreqA:02X}")
@@ -3451,7 +3466,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder2TimeA Page: 5")
                     if SeFreqUnder2TimeA >= 0xFF00:
                         update_op_data("SeFreqUnder2TimeA", f"N/A")
-                    elif SeFreqUnder2TimeA >= 0xFF00:
+                    elif SeFreqUnder2TimeA >= 0xFE00:
                         update_op_data("SeFreqUnder2TimeA", f"Error")
                     elif SeFreqUnder2TimeA >= 0xFB00:
                         update_op_data("SeFreqUnder2TimeA", f"Reserved 0x{SeFreqUnder2TimeA:02X}")
@@ -3463,7 +3478,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV3hLV2lLNA Page: 6")
                     if SeLV3hLV2lLNA >= 0xFF00:
                         update_op_data("SeLV3hLV2lLNA", f"N/A")
-                    elif SeLV3hLV2lLNA >= 0xFF00:
+                    elif SeLV3hLV2lLNA >= 0xFE00:
                         update_op_data("SeLV3hLV2lLNA", f"Error")
                     elif SeLV3hLV2lLNA >= 0xFB00:
                         update_op_data("SeLV3hLV2lLNA", f"Reserved 0x{SeLV3hLV2lLNA:02X}")
@@ -3474,7 +3489,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV3TimeA Page: 6")
                     if SeLV3TimeA >= 0xFF00:
                         update_op_data("SeLV3TimeA", f"N/A")
-                    elif SeLV3TimeA >= 0xFF00:
+                    elif SeLV3TimeA >= 0xFE00:
                         update_op_data("SeLV3TimeA", f"Error")
                     elif SeLV3TimeA >= 0xFB00:
                         update_op_data("SeLV3TimeA", f"Reserved 0x{SeLV3TimeA:02X}")
@@ -3485,7 +3500,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV2hLV1lLNA Page: 6")
                     if SeLV2hLV1lLNA >= 0xFF00:
                         update_op_data("SeLV2hLV1lLNA", f"N/A")
-                    elif SeLV2hLV1lLNA >= 0xFF00:
+                    elif SeLV2hLV1lLNA >= 0xFE00:
                         update_op_data("SeLV2hLV1lLNA", f"Error")
                     elif SeLV2hLV1lLNA >= 0xFB00:
                         update_op_data("SeLV2hLV1lLNA", f"Reserved 0x{SeLV2hLV1lLNA:02X}")
@@ -3497,7 +3512,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV2TimeA Page: 7")
                     if SeLV2TimeA >= 0xFF00:
                         update_op_data("SeLV2TimeA", f"N/A")
-                    elif SeLV2TimeA >= 0xFF00:
+                    elif SeLV2TimeA >= 0xFE00:
                         update_op_data("SeLV2TimeA", f"Error")
                     elif SeLV2TimeA >= 0xFB00:
                         update_op_data("SeLV2TimeA", f"Reserved 0x{SeLV2TimeA:02X}")
@@ -3508,7 +3523,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV1hLNA Page: 7")
                     if SeLV1hLNA >= 0xFF00:
                         update_op_data("SeLV1hLNA", f"N/A")
-                    elif SeLV1hLNA >= 0xFF00:
+                    elif SeLV1hLNA >= 0xFE00:
                         update_op_data("SeLV1hLNA", f"Error")
                     elif SeLV1hLNA >= 0xFB00:
                         update_op_data("SeLV1hLNA", f"Reserved 0x{SeLV1hLNA:02X}")
@@ -3519,7 +3534,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV1TimeA Page: 7")
                     if SeLV1TimeA >= 0xFF00:
                         update_op_data("SeLV1TimeA", f"N/A")
-                    elif SeLV1TimeA >= 0xFF00:
+                    elif SeLV1TimeA >= 0xFE00:
                         update_op_data("SeLV1TimeA", f"Error")
                     elif SeLV1TimeA >= 0xFB00:
                         update_op_data("SeLV1TimeA", f"Reserved 0x{SeLV1TimeA:02X}")
@@ -3531,7 +3546,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1lLNA Page: 8")
                     if SeHV1lLNA >= 0xFF00:
                         update_op_data("SeHV1lLNA", f"N/A")
-                    elif SeHV1lLNA >= 0xFF00:
+                    elif SeHV1lLNA >= 0xFE00:
                         update_op_data("SeHV1lLNA", f"Error")
                     elif SeHV1lLNA >= 0xFB00:
                         update_op_data("SeHV1lLNA", f"Reserved 0x{SeHV1lLNA:02X}")
@@ -3542,7 +3557,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1TimeA Page: 8")
                     if SeHV1TimeA >= 0xFF00:
                         update_op_data("SeHV1TimeA", f"N/A")
-                    elif SeHV1TimeA >= 0xFF00:
+                    elif SeHV1TimeA >= 0xFE00:
                         update_op_data("SeHV1TimeA", f"Error")
                     elif SeHV1TimeA >= 0xFB00:
                         update_op_data("SeHV1TimeA", f"Reserved 0x{SeHV1TimeA:02X}")
@@ -3554,7 +3569,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1hHV2lLNA Page: 9")
                     if SeHV1hHV2lLNA >= 0xFF00:
                         update_op_data("SeHV1hHV2lLNA", f"N/A")
-                    elif SeHV1hHV2lLNA >= 0xFF00:
+                    elif SeHV1hHV2lLNA >= 0xFE00:
                         update_op_data("SeHV1hHV2lLNA", f"Error")
                     elif SeHV1hHV2lLNA >= 0xFB00:
                         update_op_data("SeHV1hHV2lLNA", f"Reserved 0x{SeHV1hHV2lLNA:02X}")
@@ -3565,7 +3580,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV2TimeA Page: 9")
                     if SeHV2TimeA >= 0xFF00:
                         update_op_data("SeHV2TimeA", f"N/A")
-                    elif SeHV2TimeA >= 0xFF00:
+                    elif SeHV2TimeA >= 0xFE00:
                         update_op_data("SeHV2TimeA", f"Error")
                     elif SeHV2TimeA >= 0xFB00:
                         update_op_data("SeHV2TimeA", f"Reserved 0x{SeHV2TimeA:02X}")
@@ -3577,7 +3592,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver1FreqB Page: 10")
                     if SeFreqOver1FreqB >= 0xFF:
                         update_op_data("SeFreqOver1FreqB", f"N/A")
-                    elif SeFreqOver1FreqB >= 0xFF:
+                    elif SeFreqOver1FreqB >= 0xFE:
                         update_op_data("SeFreqOver1FreqB", f"Error")
                     elif SeFreqOver1FreqB >= 0xFB:
                         update_op_data("SeFreqOver1FreqB", f"Reserved 0x{SeFreqOver1FreqB:02X}")
@@ -3588,7 +3603,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver1TimeB Page: 10")
                     if SeFreqOver1TimeB >= 0xFF00:
                         update_op_data("SeFreqOver1TimeB", f"N/A")
-                    elif SeFreqOver1TimeB >= 0xFF00:
+                    elif SeFreqOver1TimeB >= 0xFE00:
                         update_op_data("SeFreqOver1TimeB", f"Error")
                     elif SeFreqOver1TimeB >= 0xFB00:
                         update_op_data("SeFreqOver1TimeB", f"Reserved 0x{SeFreqOver1TimeB:02X}")
@@ -3599,7 +3614,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver2FreqB Page: 10")
                     if SeFreqOver2FreqB >= 0xFF:
                         update_op_data("SeFreqOver2FreqB", f"N/A")
-                    elif SeFreqOver2FreqB >= 0xFF:
+                    elif SeFreqOver2FreqB >= 0xFE:
                         update_op_data("SeFreqOver2FreqB", f"Error")
                     elif SeFreqOver2FreqB >= 0xFB:
                         update_op_data("SeFreqOver2FreqB", f"Reserved 0x{SeFreqOver2FreqB:02X}")
@@ -3610,7 +3625,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqOver2TimeB Page: 10")
                     if SeFreqOver2TimeB >= 0xFF00:
                         update_op_data("SeFreqOver2TimeB", f"N/A")
-                    elif SeFreqOver2TimeB >= 0xFF00:
+                    elif SeFreqOver2TimeB >= 0xFE00:
                         update_op_data("SeFreqOver2TimeB", f"Error")
                     elif SeFreqOver2TimeB >= 0xFB00:
                         update_op_data("SeFreqOver2TimeB", f"Reserved 0x{SeFreqOver2TimeB:02X}")
@@ -3622,7 +3637,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder1FreqB Page: 11")
                     if SeFreqUnder1FreqB >= 0xFF:
                         update_op_data("SeFreqUnder1FreqB", f"N/A")
-                    elif SeFreqUnder1FreqB >= 0xFF:
+                    elif SeFreqUnder1FreqB >= 0xFE:
                         update_op_data("SeFreqUnder1FreqB", f"Error")
                     elif SeFreqUnder1FreqB >= 0xFB:
                         update_op_data("SeFreqUnder1FreqB", f"Reserved 0x{SeFreqUnder1FreqB:02X}")
@@ -3633,7 +3648,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder1TimeB Page: 11")
                     if SeFreqUnder1TimeB >= 0xFF00:
                         update_op_data("SeFreqUnder1TimeB", f"N/A")
-                    elif SeFreqUnder1TimeB >= 0xFF00:
+                    elif SeFreqUnder1TimeB >= 0xFE00:
                         update_op_data("SeFreqUnder1TimeB", f"Error")
                     elif SeFreqUnder1TimeB >= 0xFB00:
                         update_op_data("SeFreqUnder1TimeB", f"Reserved 0x{SeFreqUnder1TimeB:02X}")
@@ -3644,7 +3659,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder2FreqB Page: 11")
                     if SeFreqUnder2FreqB >= 0xFF:
                         update_op_data("SeFreqUnder2FreqB", f"N/A")
-                    elif SeFreqUnder2FreqB >= 0xFF:
+                    elif SeFreqUnder2FreqB >= 0xFE:
                         update_op_data("SeFreqUnder2FreqB", f"Error")
                     elif SeFreqUnder2FreqB >= 0xFB:
                         update_op_data("SeFreqUnder2FreqB", f"Reserved 0x{SeFreqUnder2FreqB:02X}")
@@ -3655,7 +3670,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeFreqUnder2TimeB Page: 11")
                     if SeFreqUnder2TimeB >= 0xFF00:
                         update_op_data("SeFreqUnder2TimeB", f"N/A")
-                    elif SeFreqUnder2TimeB >= 0xFF00:
+                    elif SeFreqUnder2TimeB >= 0xFE00:
                         update_op_data("SeFreqUnder2TimeB", f"Error")
                     elif SeFreqUnder2TimeB >= 0xFB00:
                         update_op_data("SeFreqUnder2TimeB", f"Reserved 0x{SeFreqUnder2TimeB:02X}")
@@ -3667,7 +3682,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV3hLV2lLNB Page: 12")
                     if SeLV3hLV2lLNB >= 0xFF00:
                         update_op_data("SeLV3hLV2lLNB", f"N/A")
-                    elif SeLV3hLV2lLNB >= 0xFF00:
+                    elif SeLV3hLV2lLNB >= 0xFE00:
                         update_op_data("SeLV3hLV2lLNB", f"Error")
                     elif SeLV3hLV2lLNB >= 0xFB00:
                         update_op_data("SeLV3hLV2lLNB", f"Reserved 0x{SeLV3hLV2lLNB:02X}")
@@ -3678,7 +3693,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV3TimeB Page: 12")
                     if SeLV3TimeB >= 0xFF00:
                         update_op_data("SeLV3TimeB", f"N/A")
-                    elif SeLV3TimeB >= 0xFF00:
+                    elif SeLV3TimeB >= 0xFE00:
                         update_op_data("SeLV3TimeB", f"Error")
                     elif SeLV3TimeB >= 0xFB00:
                         update_op_data("SeLV3TimeB", f"Reserved 0x{SeLV3TimeB:02X}")
@@ -3689,7 +3704,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV2hLV1lLNB Page: 12")
                     if SeLV2hLV1lLNB >= 0xFF00:
                         update_op_data("SeLV2hLV1lLNB", f"N/A")
-                    elif SeLV2hLV1lLNB >= 0xFF00:
+                    elif SeLV2hLV1lLNB >= 0xFE00:
                         update_op_data("SeLV2hLV1lLNB", f"Error")
                     elif SeLV2hLV1lLNB >= 0xFB00:
                         update_op_data("SeLV2hLV1lLNB", f"Reserved 0x{SeLV2hLV1lLNB:02X}")
@@ -3701,7 +3716,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV2TimeB Page: 13")
                     if SeLV2TimeB >= 0xFF00:
                         update_op_data("SeLV2TimeB", f"N/A")
-                    elif SeLV2TimeB >= 0xFF00:
+                    elif SeLV2TimeB >= 0xFE00:
                         update_op_data("SeLV2TimeB", f"Error")
                     elif SeLV2TimeB >= 0xFB00:
                         update_op_data("SeLV2TimeB", f"Reserved 0x{SeLV2TimeB:02X}")
@@ -3712,7 +3727,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV1hLNB Page: 13")
                     if SeLV1hLNB >= 0xFF00:
                         update_op_data("SeLV1hLNB", f"N/A")
-                    elif SeLV1hLNB >= 0xFF00:
+                    elif SeLV1hLNB >= 0xFE00:
                         update_op_data("SeLV1hLNB", f"Error")
                     elif SeLV1hLNB >= 0xFB00:
                         update_op_data("SeLV1hLNB", f"Reserved 0x{SeLV1hLNB:02X}")
@@ -3723,7 +3738,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeLV1TimeB Page: 13")
                     if SeLV1TimeB >= 0xFF00:
                         update_op_data("SeLV1TimeB", f"N/A")
-                    elif SeLV1TimeB >= 0xFF00:
+                    elif SeLV1TimeB >= 0xFE00:
                         update_op_data("SeLV1TimeB", f"Error")
                     elif SeLV1TimeB >= 0xFB00:
                         update_op_data("SeLV1TimeB", f"Reserved 0x{SeLV1TimeB:02X}")
@@ -3735,7 +3750,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1lLNB Page: 14")
                     if SeHV1lLNB >= 0xFF00:
                         update_op_data("SeHV1lLNB", f"N/A")
-                    elif SeHV1lLNB >= 0xFF00:
+                    elif SeHV1lLNB >= 0xFE00:
                         update_op_data("SeHV1lLNB", f"Error")
                     elif SeHV1lLNB >= 0xFB00:
                         update_op_data("SeHV1lLNB", f"Reserved 0x{SeHV1lLNB:02X}")
@@ -3746,7 +3761,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1TimeB Page: 14")
                     if SeHV1TimeB >= 0xFF00:
                         update_op_data("SeHV1TimeB", f"N/A")
-                    elif SeHV1TimeB >= 0xFF00:
+                    elif SeHV1TimeB >= 0xFE00:
                         update_op_data("SeHV1TimeB", f"Error")
                     elif SeHV1TimeB >= 0xFB00:
                         update_op_data("SeHV1TimeB", f"Reserved 0x{SeHV1TimeB:02X}")
@@ -3758,7 +3773,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV1hHV2lLNB Page: 15")
                     if SeHV1hHV2lLNB >= 0xFF00:
                         update_op_data("SeHV1hHV2lLNB", f"N/A")
-                    elif SeHV1hHV2lLNB >= 0xFF00:
+                    elif SeHV1hHV2lLNB >= 0xFE00:
                         update_op_data("SeHV1hHV2lLNB", f"Error")
                     elif SeHV1hHV2lLNB >= 0xFB00:
                         update_op_data("SeHV1hHV2lLNB", f"Reserved 0x{SeHV1hHV2lLNB:02X}")
@@ -3769,7 +3784,7 @@ def display_frames(chunks):
                     result_display.append(f"    SeHV2TimeB Page: 15")
                     if SeHV2TimeB >= 0xFF00:
                         update_op_data("SeHV2TimeB", f"N/A")
-                    elif SeHV2TimeB >= 0xFF00:
+                    elif SeHV2TimeB >= 0xFE00:
                         update_op_data("SeHV2TimeB", f"Error")
                     elif SeHV2TimeB >= 0xFB00:
                         update_op_data("SeHV2TimeB", f"Reserved 0x{SeHV2TimeB:02X}")

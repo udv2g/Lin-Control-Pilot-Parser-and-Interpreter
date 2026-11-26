@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 import re
 import zlib
+from datetime import datetime, timedelta
 
 import globals
 
@@ -349,3 +350,28 @@ def crc_check(page_crc_value, stored_pages_bytes):
     is_match = (page_crc_value == computed_crc)
 
     return is_match, computed_crc
+
+
+def format_j3072_time(byte_vals):
+    """
+    56-bit certification-stage time (J3068/2 7.3.2, 7.3.16, 7.3.49): 1 s per
+    bit from midnight, 1 January 1970, least significant byte first; FExx...
+    is Error and FFFF... Not Available.  These used to be joined as text.  The
+    reference sends ASCII placeholders here; such a value is not a calendar
+    date and is shown as a number with the bytes as text.
+    """
+    raw = bytes(byte_vals[:7])
+    value = int.from_bytes(raw, "little")
+    top = value >> 48
+    if top == 0xFF:
+        return "N/A"
+    if top == 0xFE:
+        return "Error"
+    if top >= 0xFB:
+        return f"Reserved 0x{value:014X}"
+    try:
+        when = datetime(1970, 1, 1) + timedelta(seconds=value)
+        return f"{when:%Y-%m-%d %H:%M:%S} ({value} s since 1970-01-01)"
+    except OverflowError:
+        text = raw.decode("ascii") if all(32 <= b < 127 for b in raw) else None
+        return f"{value} s, not a calendar date" + (f" (as text: '{text}')" if text else "")
