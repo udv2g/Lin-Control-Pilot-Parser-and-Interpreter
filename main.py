@@ -254,11 +254,10 @@ window = QMainWindow()
 #   set minimum size
 # window.setMinimumSize(1200, 600)
 def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
+    """Path of a bundled file such as an image: PyInstaller's unpack folder
+    when frozen, otherwise the folder this script is in.  It used to be the
+    current directory, so started from anywhere else every icon was blank."""
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
 #   sets open size of program
@@ -979,6 +978,14 @@ class LoadingDialog(QDialog):
         pos_x = 650
         pos_y = 300
         self.move(pos_x, pos_y)
+
+        # close() only hid the dialog: its animation kept running, one more per
+        # file opened, and parsing (which processes events per frame) slowed down.
+        self.finished.connect(self.stop_and_free)
+
+    def stop_and_free(self):
+        self.movie.stop()
+        self.deleteLater()
 
 
 
@@ -3845,7 +3852,7 @@ def process_live_data(new_data, is_spaced):
 
 
 def parse_file(file_content, chosen_spaced):
-    global raw_file_buffer, frames_parsed, total_frames, is_spaced_format
+    global raw_file_buffer, frames_parsed, total_frames, is_spaced_format, last_valid_frame
     global current_init_data, init_data_timeline
     global current_op_data, op_data_timeline
     global current_ver_data, ver_data_timeline
@@ -3869,6 +3876,13 @@ def parse_file(file_content, chosen_spaced):
     seID_buffer.clear()
     evJ3072_buffer.clear()
     seJ3072_buffer.clear()
+    # Per-frame state of the previous file: without this, frame validity, the
+    # Recent Data tab and frame times kept reading the earlier file's frames.
+    last_valid_frame = None
+    frame_validity_map.clear()
+    recent_frame_types.clear()
+    globals.all_frame_types.clear()
+    globals.frame_timestamps.clear()
     process_live_data(file_content, is_spaced_format)
     slider.setValue(total_frames)
     refresh_all_displays(slider.value())
@@ -4595,6 +4609,18 @@ class DebugDialog(QDialog):
 
         self.update_recent_data_tab()
         slider.valueChanged.connect(self.update_recent_data_tab)
+        # finished is emitted however the dialog goes away (Close, Esc, the window's X)
+        self.finished.connect(self.stop_following_slider)
+
+    def stop_following_slider(self):
+        """Disconnect from the slider and free the dialog once it is closed.  Before
+        this, every dialog ever opened stayed alive and kept recomputing the
+        Recent Data table on each slider move, so the slider slowed down."""
+        try:
+            slider.valueChanged.disconnect(self.update_recent_data_tab)
+        except TypeError:
+            pass
+        self.deleteLater()
 
     def update_recent_data_tab(self):
         from collections import Counter
@@ -4747,8 +4773,6 @@ def open_debug_dialog():
 
     debug_dialog = DebugDialog(window, debug_text)
     debug_dialog.setModal(False)
-
-    slider.valueChanged.connect(debug_dialog.update_recent_data_tab)
 
     #   Uncomment this code below to live update debug info I have commented it out it made it very laggy
     #   This will not stop recent data from updating live
