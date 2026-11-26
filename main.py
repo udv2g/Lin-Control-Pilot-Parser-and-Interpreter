@@ -1,3 +1,4 @@
+# Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QSlider,
     QHBoxLayout, QSizePolicy, QSpacerItem, QFrame, QGridLayout, QPushButton,
@@ -1177,7 +1178,7 @@ def display_frames(chunks):
                 result_display.append(f"  Frame Type: {frame_id:02X}")
                 data_bytes_str = " ".join(data_bytes)
                 result_display.append(f"  Data Bytes: {data_bytes_str} ")
-                result_display.append(f"  Frame Bytes: {" ".join(frame_data)} \n")
+                result_display.append(f"  Frame Bytes: {' '.join(frame_data)} \n")
 
                 continue
 
@@ -1192,7 +1193,7 @@ def display_frames(chunks):
             result_display.append(f"  Frame Type: {frame_id:02X}")  # display in debug as hex
             data_bytes_str = " ".join(data_bytes)
             result_display.append(f"  Data Bytes: {data_bytes_str}")
-            result_display.append(f"  Frame Bytes: {" ".join(frame_data)} ")
+            result_display.append(f"  Frame Bytes: {' '.join(frame_data)} ")
 
             # Interpret frames
             if frame_id == 0:  # SeVersionList

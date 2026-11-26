@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware -->
 # Lin Control Pilot Parser and Interpreter
 [SAE J3068](https://www.sae.org/search/?qt=j3068) interpretation\
 CVORG / The University of Delaware   
@@ -32,23 +33,24 @@ The GUI has a multifunctional design to carry out a variety of tasks including p
 There is 2 options for running this program.  <br><br>**1. [Only use if you have a Windows devices]** navigate to where you downloaded the program. Then follow this path dist\main\ in this location you should see 2 things a file that is _internal and another main.exe, double-click on main.exe. The program should now be working. This method doesn't require you to have any pre-downloaded items such as Python or specific libraries. <br>
 <br>**2. [Non-Windows devices/Windows Development]** Before running the application, ensure you have the following installed on your system:
 
-- **Python 10+ Required**  
+- **Python 3.10 or later**  
   This application was tested on [Python Version 3.13.5](https://www.python.org/downloads/).
 
-- **PyQt5**  
-  The GUI uses the PyQt5 framework. Install it:
+- **PyQt5 and pyserial**  
+  The GUI uses the PyQt5 framework, and `pyserial` for live serial data. Install both from the project directory:
   ```bash
-  install PyQt5
-  ```
-
-- **pyserial**  
-  For handling live serial data, the application uses `pyserial`. Install it:
-  ```bash
-  install pyserial
+  python -m pip install -r requirements.txt
   ```
 
 - **Other Standard Libraries**  
   The code utilizes standard Python libraries such as `os`, `ctypes`, `re`, `copy`, `queue`, etc., which come with the standard Python distribution.
+
+- **Tests (optional)**  
+  The tests run the GUI headless on the logs in `Test_Files`; no serial port or LIN-Tool is needed:
+  ```bash
+  python -m pip install -r requirements-dev.txt
+  python -m pytest tests
+  ```
 
 ---
 
