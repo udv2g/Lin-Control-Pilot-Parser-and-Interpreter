@@ -1,4 +1,7 @@
+# Copyright (c) 2026, Systems and Standards Group, Institute of Energy Conversion, University of Delaware
 import re
+import zlib
+
 import globals
 
 def format_frame(fno):
@@ -144,16 +147,28 @@ def format_voltage_value(voltage_float):
 
 
 def compute_lin_enhanced_checksum(frame_id, databytes):
+    """
+    Returns (checksum, protected_id) for a frame.
+
+    The checksum adds the bytes with carry -- a sum above 0xFF wraps by
+    subtracting 0xFF -- and inverts the result (LIN 2.2A clause 2.3.1.5).
+    Frames 0-59 use the enhanced checksum, which includes the protected id;
+    the diagnostic frames 60 and 61 (go-to-sleep among them) use the classic
+    checksum over the data only.  A plain "% 255" is not the same: it turns a
+    sum of exactly 0xFF into 0, so the checksum came out 0xFF where the
+    sender sends 0x00, and good frames were reported invalid.
+    """
     id_bits = [(frame_id >> i) & 0x01 for i in range(6)]
     p0 = id_bits[0] ^ id_bits[1] ^ id_bits[2] ^ id_bits[4]
     p1_xor = id_bits[1] ^ id_bits[3] ^ id_bits[4] ^ id_bits[5]
     p1 = 0 if p1_xor == 1 else 1
     protected_id = (p1 << 7) | (p0 << 6) | (frame_id & 0x3F)
 
-    checksum = protected_id
+    checksum = 0 if (frame_id & 0x3F) in (0x3C, 0x3D) else protected_id
     for b in databytes:
         checksum += b
-    checksum = checksum % 255
+        if checksum > 0xFF:
+            checksum -= 0xFF
     checksum = (~checksum) & 0xFF
     return checksum, protected_id
 
@@ -313,17 +328,16 @@ def format_j3072_crc_status(byte_val, device_type):
 
 def crc_check(page_crc_value, stored_pages_bytes):
     """
-    Computes the CRC-32.CRC32 was used from library
-    https://github.com/Nicoretti/crc
-    This is currently configured directly from documentation
-    Change at own discretion
-    This is a confirmed working implementation of CRC32 for EvID and SeID in SAE J3068/1
+    Computes the CRC-32 of the stored ID-stage pages and compares it with the
+    value from the CRC page.  Returns (is_match, computed_crc).
+
+    This is the common CRC-32 (reflected polynomial 0xEDB88320, initial value
+    and final XOR 0xFFFFFFFF), the one that confirmed the EvID and SeID CRC in
+    SAE J3068/1.  It was taken from the third-party `crc` package, which the
+    README never listed, so every CRC page failed with "No module named
+    'crc'".  zlib.crc32 in the standard library computes the same value.
     """
-    from crc import Calculator, Crc32
-
-    calculator = Calculator(Crc32.CRC32, optimized=True)
-
-    computed_crc = calculator.checksum(bytes(stored_pages_bytes))
+    computed_crc = zlib.crc32(bytes(stored_pages_bytes)) & 0xFFFFFFFF
 
     is_match = (page_crc_value == computed_crc)
 

@@ -1616,7 +1616,11 @@ def display_frames(chunks):
                 page = databytes[0]
                 update_op_data("EvIDPage", str(page))
 
-                if 0 < page < 251:
+                # CRC-32 cycle (J3068/1 3.13, 7.3.1.1): it starts at the control page and covers
+                # the pages after it, page numbers included, up to the CRC page.
+                if page == 0:
+                    evID_stage_bytes.clear()
+                elif 0 < page < 251:
                     evID_stage_bytes.extend(databytes)
 
                 if page == 0:
@@ -2393,7 +2397,11 @@ def display_frames(chunks):
                 page = databytes[0]
                 update_op_data("SeIDPage", str(page))
 
-                if 0 < page < 251:
+                # CRC-32 cycle (J3068/1 3.13, 7.3.1.1): it starts at the control page and covers
+                # the pages after it, page numbers included, up to the CRC page.
+                if page == 0:
+                    seID_stage_bytes.clear()
+                elif 0 < page < 251:
                     seID_stage_bytes.extend(databytes)
 
                 if page == 0:

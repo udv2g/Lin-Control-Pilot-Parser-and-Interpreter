@@ -11,6 +11,7 @@ FRAME_COUNTS = {
     "-2_testlog_emu.log": 1350,
     "3p-1p_test.log": 1086,
     "CRC32_Match_test.log": 1026,
+    "CRC32_Match_test_fixed_emulator.log": 3418,
     "Cable_node_Ver_2_alter.txt": 193,
     "LIN-CP_emu_Log_Binary.log": 463,
     "Test_FIle.log": 990,
@@ -18,7 +19,9 @@ FRAME_COUNTS = {
 
 
 def test_window_starts(gui):
-    assert gui["window"].windowTitle() == "LIN_GUI"
+    # the title gains " - <file>" once a file is loaded, so other tests may have changed it
+    assert gui["window"].windowTitle().startswith("LIN_GUI")
+    assert gui["window"].centralWidget() is not None
 
 
 @pytest.mark.parametrize("name", sorted(FRAME_COUNTS))

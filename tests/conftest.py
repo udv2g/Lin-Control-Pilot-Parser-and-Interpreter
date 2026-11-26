@@ -61,24 +61,28 @@ def open_file(gui, monkeypatch):
     return _open
 
 
+def lin_checksum(start, data):
+    """The checksum a sender puts on the wire, written as a closed form.
+
+    Adding with carry (wrap by subtracting 0xFF) leaves 0 for a zero total and
+    otherwise (total - 1) % 255 + 1; the checksum is that, inverted.  `start`
+    is the PID for the enhanced checksum and 0 for the classic one.
+    """
+    total = start + sum(data)
+    carried = 0 if total == 0 else (total - 1) % 255 + 1
+    return ~carried & 0xFF
+
+
 def lin_frame(frame_id, data):
     """One 12-byte LIN-Tool record (break, sync, PID, 8 data bytes, checksum) for a frame.
 
-    Built independently of data_processing: the checksum is chosen so that the
-    receiver's test holds -- PID (or 0 for the classic ids 60 and 61), the data
-    and the checksum added with carry give 0xFF.
+    Built independently of data_processing.  Ids 60 and 61 get the classic
+    checksum, all others the enhanced one.
     """
     bits = [(frame_id >> i) & 1 for i in range(6)]
     p0 = bits[0] ^ bits[1] ^ bits[2] ^ bits[4]
     p1 = 1 - (bits[1] ^ bits[3] ^ bits[4] ^ bits[5])
     pid = (p1 << 7) | (p0 << 6) | frame_id
     data = list(data)
-    for ck in range(256):
-        total = 0 if frame_id in (60, 61) else pid
-        for b in data + [ck]:
-            total += b
-            if total > 0xFF:
-                total -= 0xFF
-        if total == 0xFF:
-            return bytes([0x00, 0x55, pid] + data + [ck])
-    raise AssertionError("no checksum closes the frame")
+    checksum = lin_checksum(0 if frame_id in (60, 61) else pid, data)
+    return bytes([0x00, 0x55, pid] + data + [checksum])
